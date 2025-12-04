@@ -40,6 +40,7 @@ next-env.d.ts
 
 # wrangler files
 .wrangler
+.env
 .dev.vars*
 !.dev.vars.example
 !.env.example

@@ -1,0 +1,67 @@
+---
+title: "Manual installation (Next.js)"
+description: "Add Fumadocs to a Next.js app using the `fumadocs-mdx` packages and the UI bundle."
+---
+
+# Manual installation — Next.js
+
+This guide shows a minimal Next.js setup that uses fumadocs-mdx with the fumadocs UI.
+
+## 1. Install packages
+
+Using pnpm (or your package manager of choice) install the packages:
+
+```bash
+pnpm add fumadocs-mdx fumadocs-core fumadocs-ui @types/mdx
+```
+
+This repository already contains a working example — the packages are preinstalled and configured for you.
+
+## 2. Add MDX support in `next.config` (done for you)
+
+Add the MDX plugin to `next.config.ts`:
+
+```ts
+import { createMDX } from 'fumadocs-mdx/next';
+
+export default createMDX({ /* options */ })({ /* your next config */ })
+```
+
+This makes `.mdx` files and the fumadocs sources resolvable to the build.
+
+## 3. Define the content source
+
+Create `source.config.ts` and define your docs directory:
+
+```ts
+import { defineDocs, defineConfig } from 'fumadocs-mdx/config';
+
+export const docs = defineDocs({ dir: 'content/docs' });
+export default defineConfig();
+```
+
+The generator will create `.source/*` helpers for server and browser usage.
+
+## 4. Create a UI route
+
+Use `fumadocs-ui` components to render the docs site. Example wrapper in `src/app/docs/layout.tsx`:
+
+```tsx
+'use client'
+import { RootProvider } from 'fumadocs-ui/provider/next';
+import 'fumadocs-ui/style.css';
+
+export default function DocsLayout({ children }: { children: React.ReactNode }) {
+  return <RootProvider>{children}</RootProvider>;
+}
+```
+
+Then render the MDX content inside `DocsPage` in `src/app/docs/page.tsx`.
+
+## 5. Add docs content
+
+Drop MDX files into `content/docs/*` and they will be picked up by `fumadocs-mdx`.
+
+---
+
+That's it — the project already has a working starter for fumadocs. Explore `/docs` to see the example page.
