@@ -1,10 +1,12 @@
-'use client';
-import React from 'react';
+import { source } from '@/lib/source';
+import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+import { baseOptions } from '@/lib/layout.shared';
+import type { ReactNode } from 'react';
 
-export default function DocsLayout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen p-8 bg-white dark:bg-black text-slate-900 dark:text-slate-50">
+    <DocsLayout tree={source.pageTree} {...baseOptions()}>
       {children}
-    </div>
+    </DocsLayout>
   );
 }
