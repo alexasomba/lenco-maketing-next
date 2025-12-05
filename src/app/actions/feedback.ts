@@ -1,15 +1,13 @@
 'use server';
 
 import type { Feedback, ActionResponse } from '@/components/feedback';
+import { onRateAction as githubRateAction } from '@/lib/github';
 
 export async function onRateAction(
   url: string,
   feedback: Feedback
 ): Promise<ActionResponse> {
-  // Log feedback for now - can be extended to:
-  // - Send to GitHub Discussions
-  // - Store in database
-  // - Send to analytics (PostHog, etc.)
+  // Log feedback
   console.log('[Feedback]', {
     url,
     opinion: feedback.opinion,
@@ -17,7 +15,16 @@ export async function onRateAction(
     timestamp: new Date().toISOString(),
   });
 
-  // Return empty response - can return githubUrl if integrating with GitHub Discussions
+  // If GitHub App is configured, send to GitHub Discussions
+  if (process.env.GITHUB_APP_ID && process.env.GITHUB_APP_PRIVATE_KEY) {
+    try {
+      return await githubRateAction(url, feedback);
+    } catch (error) {
+      console.error('[Feedback] GitHub integration error:', error);
+      // Fall through to return empty response
+    }
+  }
+
   return {
     githubUrl: '',
   };
