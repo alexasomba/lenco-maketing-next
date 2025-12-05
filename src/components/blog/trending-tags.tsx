@@ -1,8 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowRight } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 
 interface TrendingTagsProps {
   tags: string[];
@@ -12,7 +19,7 @@ const tagDescriptions: Record<string, { description: string; colorClass: string 
   'Business Banking': {
     description:
       'Everything you need to know about managing your business finances, opening accounts, and banking solutions.',
-    colorClass: 'bg-card border-border',
+    colorClass: 'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-700/50',
   },
   'Getting Started': {
     description:
@@ -43,21 +50,48 @@ const tagDescriptions: Record<string, { description: string; colorClass: string 
       'Resources and tips specifically designed for small business owners and entrepreneurs.',
     colorClass: 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-700/50',
   },
+  Finance: {
+    description:
+      'Deep dives into financial strategies, accounting practices, and money management for businesses.',
+    colorClass: 'bg-emerald-50 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-700/50',
+  },
+  Fintech: {
+    description:
+      'Explore the latest in financial technology, digital banking, and innovation in Africa.',
+    colorClass: 'bg-cyan-50 dark:bg-cyan-900/30 border-cyan-200 dark:border-cyan-700/50',
+  },
+  Payments: {
+    description:
+      'Everything about payment processing, transfers, and transaction management.',
+    colorClass: 'bg-violet-50 dark:bg-violet-900/30 border-violet-200 dark:border-violet-700/50',
+  },
+  Security: {
+    description:
+      'Best practices for keeping your business finances and accounts secure.',
+    colorClass: 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700/50',
+  },
+  Taxes: {
+    description:
+      'Tax planning, compliance, and strategies for Nigerian businesses.',
+    colorClass: 'bg-slate-50 dark:bg-slate-900/30 border-slate-200 dark:border-slate-700/50',
+  },
+  Growth: {
+    description:
+      'Strategies and insights for scaling your business and increasing revenue.',
+    colorClass: 'bg-lime-50 dark:bg-lime-900/30 border-lime-200 dark:border-lime-700/50',
+  },
+  API: {
+    description:
+      'Technical guides for integrating Lenco APIs into your applications.',
+    colorClass: 'bg-teal-50 dark:bg-teal-900/30 border-teal-200 dark:border-teal-700/50',
+  },
+  Zambia: {
+    description: 'Insights specific to doing business and banking in Zambia.',
+    colorClass: 'bg-rose-50 dark:bg-rose-900/30 border-rose-200 dark:border-rose-700/50',
+  },
 };
 
 export function TrendingTags({ tags }: TrendingTagsProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const visibleTags = 4;
-  const maxIndex = Math.max(0, tags.length - visibleTags);
-
-  const nextSlide = () => {
-    setCurrentIndex((prev) => Math.min(prev + 1, maxIndex));
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => Math.max(prev - 1, 0));
-  };
-
   if (tags.length <= 1) return null;
 
   const displayTags = tags.filter((tag) => tag !== 'All');
@@ -70,58 +104,58 @@ export function TrendingTags({ tags }: TrendingTagsProps) {
             <h3 className="text-lg font-semibold text-foreground">Explore Topics</h3>
             <p className="text-sm text-muted-foreground mt-1">Browse articles by category</p>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={prevSlide}
-              disabled={currentIndex === 0}
-              className="p-2 rounded-full bg-background border border-border text-foreground disabled:opacity-30 hover:bg-accent shadow-sm transition-all"
-              aria-label="Previous"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={nextSlide}
-              disabled={currentIndex >= maxIndex}
-              className="p-2 rounded-full bg-background border border-border text-foreground disabled:opacity-30 hover:bg-accent shadow-sm transition-all"
-              aria-label="Next"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
         </div>
 
-        <div className="overflow-hidden">
-          <div
-            className="flex transition-transform duration-500 ease-in-out"
-            style={{ transform: `translateX(-${currentIndex * (100 / visibleTags)}%)` }}
-          >
-            {displayTags.map((tag) => {
+        <Carousel
+          opts={{
+            align: 'start',
+            loop: false,
+          }}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-4">
+            {displayTags.map((tag, index) => {
+              // Fallback colors for tags not in the mapping
+              const fallbackColors = [
+                'bg-sky-50 dark:bg-sky-900/30 border-sky-200 dark:border-sky-700/50',
+                'bg-fuchsia-50 dark:bg-fuchsia-900/30 border-fuchsia-200 dark:border-fuchsia-700/50',
+                'bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-700/50',
+                'bg-stone-50 dark:bg-stone-900/30 border-stone-200 dark:border-stone-700/50',
+              ];
               const info = tagDescriptions[tag] || {
                 description: `Articles about ${tag}`,
-                colorClass: 'bg-card border-border',
+                colorClass: fallbackColors[index % fallbackColors.length],
               };
               return (
-                <div key={tag} className="shrink-0 w-full sm:w-1/2 lg:w-1/4 px-2">
+                <CarouselItem key={tag} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/4">
                   <Link
                     href={`/blog/all?tag=${encodeURIComponent(tag)}&page=1`}
-                    className={`group block p-5 rounded-xl border ${info.colorClass} hover:shadow-lg transition-all duration-300 h-full`}
+                    className="group block h-full"
                   >
-                    <h4 className="text-base font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-                      {tag}
-                    </h4>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                      {info.description}
-                    </p>
-                    <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">
-                      Explore
-                      <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
-                    </span>
+                    <Card className={`h-full ${info.colorClass} hover:shadow-lg transition-all duration-300`}>
+                      <CardContent className="p-5">
+                        <h4 className="text-base font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                          {tag}
+                        </h4>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                          {info.description}
+                        </p>
+                        <span className="inline-flex items-center gap-1 text-sm font-medium text-primary">
+                          Explore
+                          <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+                        </span>
+                      </CardContent>
+                    </Card>
                   </Link>
-                </div>
+                </CarouselItem>
               );
             })}
+          </CarouselContent>
+          <div className="hidden sm:block">
+            <CarouselPrevious className="-left-4 lg:-left-12" />
+            <CarouselNext className="-right-4 lg:-right-12" />
           </div>
-        </div>
+        </Carousel>
       </div>
     </div>
   );

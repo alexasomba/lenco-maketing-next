@@ -1,5 +1,8 @@
 import Link from 'next/link';
 import { getLocalThumbnail } from '@/lib/cn';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { ArrowRight } from 'lucide-react';
 
 interface FeaturedHeroProps {
   post: {
@@ -18,11 +21,11 @@ export function FeaturedHero({ post }: FeaturedHeroProps) {
     <div className="py-16 px-6 bg-background">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center gap-3 mb-8">
-          <div className="h-px flex-1 bg-border" />
+          <Separator className="flex-1" />
           <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground px-4">
             Featured Post
           </h3>
-          <div className="h-px flex-1 bg-border" />
+          <Separator className="flex-1" />
         </div>
 
         <Link href={post.url} className="group block">
@@ -40,12 +43,13 @@ export function FeaturedHero({ post }: FeaturedHeroProps) {
               {post.tags && post.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {post.tags.slice(0, 2).map((tag) => (
-                    <span
+                    <Badge
                       key={tag}
-                      className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider bg-primary/10 text-primary rounded-full border border-primary/20"
+                      variant="outline"
+                      className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider bg-primary/10 text-primary border-primary/20"
                     >
                       {tag}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
               )}
@@ -72,19 +76,7 @@ export function FeaturedHero({ post }: FeaturedHeroProps) {
 
               <div className="flex items-center gap-2 text-primary font-semibold mt-2">
                 Read article
-                <svg
-                  className="w-4 h-4 transition-transform group-hover:translate-x-1"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 8l4 4m0 0l-4 4m4-4H3"
-                  />
-                </svg>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </div>
             </div>
           </div>

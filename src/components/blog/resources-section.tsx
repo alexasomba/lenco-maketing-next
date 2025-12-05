@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { BookOpen, Video, Headphones, FileText } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface Resource {
   title: string;
@@ -67,26 +69,28 @@ export function ResourcesSection() {
               <Link
                 key={resource.title}
                 href={resource.href}
-                className="group relative block rounded-2xl overflow-hidden bg-background border border-border shadow-sm hover:shadow-lg hover:border-border/80 hover:-translate-y-1 transition-all duration-300"
+                className="group block"
               >
-                <div className="relative p-6 h-full min-h-[220px] flex flex-col">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
-                      <Icon className="w-5 h-5" />
+                <Card className="h-full min-h-[220px] border-border/50 shadow-sm hover:shadow-lg hover:border-border hover:-translate-y-1 transition-all duration-300">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      {resource.badge && (
+                        <Badge variant="secondary">{resource.badge}</Badge>
+                      )}
                     </div>
-                    {resource.badge && (
-                      <span className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider bg-muted text-muted-foreground rounded-full">
-                        {resource.badge}
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-                    {resource.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground flex-1">
-                    {resource.description}
-                  </p>
-                </div>
+                  </CardHeader>
+                  <CardContent className="pt-2">
+                    <CardTitle className="text-lg mb-2 group-hover:text-primary transition-colors">
+                      {resource.title}
+                    </CardTitle>
+                    <CardDescription className="text-sm">
+                      {resource.description}
+                    </CardDescription>
+                  </CardContent>
+                </Card>
               </Link>
             );
           })}

@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { getLocalThumbnail } from '@/lib/cn';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface Post {
   url: string;
@@ -28,7 +30,7 @@ export function PostGrid({ posts, title, columns = 3 }: PostGridProps) {
         )}
 
         <div
-          className={`grid gap-8 ${
+          className={`grid gap-6 ${
             columns === 4
               ? 'sm:grid-cols-2 lg:grid-cols-4'
               : 'sm:grid-cols-2 lg:grid-cols-3'
@@ -36,8 +38,8 @@ export function PostGrid({ posts, title, columns = 3 }: PostGridProps) {
         >
           {posts.map((post) => (
             <Link key={post.url} href={post.url} className="group block">
-              <article className="h-full">
-                <div className="relative aspect-[16/10] rounded-xl overflow-hidden mb-4 shadow-sm ring-1 ring-border/50 group-hover:shadow-lg group-hover:ring-border transition-all duration-300">
+              <Card className="h-full overflow-hidden border-border/50 shadow-sm hover:shadow-lg hover:border-border transition-all duration-300 hover:-translate-y-1 py-0 gap-0">
+                <div className="relative aspect-[16/10] overflow-hidden">
                   <img
                     src={getLocalThumbnail(post.thumbnail)}
                     alt={post.title}
@@ -45,14 +47,14 @@ export function PostGrid({ posts, title, columns = 3 }: PostGridProps) {
                   />
                   {post.tags && post.tags.length > 0 && (
                     <div className="absolute top-3 left-3">
-                      <span className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider bg-background/90 backdrop-blur-sm text-foreground rounded-full shadow-sm">
+                      <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm shadow-sm">
                         {post.tags[0]}
-                      </span>
+                      </Badge>
                     </div>
                   )}
                 </div>
 
-                <div className="space-y-2">
+                <CardContent className="p-4 space-y-2">
                   <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
                     {post.title}
                   </h3>
@@ -65,8 +67,8 @@ export function PostGrid({ posts, title, columns = 3 }: PostGridProps) {
                       </>
                     )}
                   </div>
-                </div>
-              </article>
+                </CardContent>
+              </Card>
             </Link>
           ))}
         </div>
