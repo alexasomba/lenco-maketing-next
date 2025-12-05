@@ -89,17 +89,36 @@ export function RecentPostsGrid({ posts }: RecentPostsGridProps) {
           </div>
 
           <Card className="h-fit py-4 gap-0">
-            <CardContent className="p-4 pt-0 space-y-1">
+            <CardContent className="p-4 pt-0 space-y-2">
               <h4 className="text-sm font-semibold text-foreground mb-4 px-2">More Articles</h4>
               {smallPosts.map((post) => (
                 <Link key={post.url} href={post.url} className="group block">
-                  <div className="p-2 rounded-lg hover:bg-accent transition-colors">
-                    <h5 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2">
-                      {post.title}
-                    </h5>
-                    <span className="text-xs text-muted-foreground mt-1 block">
-                      {post.date}
-                    </span>
+                  <div className="flex gap-3 p-2 rounded-lg hover:bg-accent transition-colors">
+                    <div className="w-14 h-14 shrink-0 rounded-lg overflow-hidden ring-1 ring-border">
+                      <img
+                        src={getLocalThumbnail(post.thumbnail)}
+                        alt={post.title}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h5 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+                        {post.title}
+                      </h5>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-muted-foreground">
+                          {post.date}
+                        </span>
+                        {post.tags && post.tags[0] && (
+                          <>
+                            <span className="text-muted-foreground/50">•</span>
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
+                              {post.tags[0]}
+                            </Badge>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </Link>
               ))}
