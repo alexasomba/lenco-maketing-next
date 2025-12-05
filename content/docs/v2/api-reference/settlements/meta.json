@@ -2,5 +2,8 @@
     "title": "Settlements",
     "description": "View settlement information",
     "icon": "Receipt",
-    "pages": []
+    "pages": [
+        "getSettlements",
+        "getSettlementById"
+    ]
 }

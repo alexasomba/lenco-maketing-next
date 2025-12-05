@@ -2,5 +2,11 @@
     "title": "Collections",
     "description": "View payment collections",
     "icon": "CircleDollarSign",
-    "pages": []
+    "pages": [
+        "getCollections",
+        "getCollectionById",
+        "getCollectionByReference",
+        "collectFromMobileMoney",
+        "collectFromCard"
+    ]
 }

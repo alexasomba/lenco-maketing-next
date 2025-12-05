@@ -1,6 +1,8 @@
 {
     "title": "Banks",
-    "description": "Retrieve list of Nigerian banks",
+    "description": "Retrieve list of supported banks",
     "icon": "Building",
-    "pages": []
+    "pages": [
+        "getBanks"
+    ]
 }

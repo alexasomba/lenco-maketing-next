@@ -1,6 +1,8 @@
 {
     "title": "Encryption",
-    "description": "Secure data encryption for sensitive operations",
+    "description": "Get encryption keys for sensitive operations",
     "icon": "Lock",
-    "pages": []
+    "pages": [
+        "getEncryptionKey"
+    ]
 }

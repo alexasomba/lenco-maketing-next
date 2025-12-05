@@ -1,6 +1,14 @@
 {
     "title": "Webhooks",
     "description": "Receive real-time event notifications",
-    "icon": "Webhook",
-    "pages": []
+    "icon": "Bell",
+    "pages": [
+        "transfer.successful",
+        "transfer.failed",
+        "collection.successful",
+        "collection.failed",
+        "collection.settled",
+        "transaction.credit",
+        "transaction.debit"
+    ]
 }

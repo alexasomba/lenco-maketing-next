@@ -1,6 +1,6 @@
 {
     "title": "Accept Payments",
-    "description": "Generate virtual accounts and accept payments",
+    "description": "Accept payments using the Lenco widget",
     "icon": "CreditCard",
-    "pages": []
+    "pages": ["index"]
 }

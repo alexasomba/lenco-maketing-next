@@ -1,6 +1,11 @@
 {
     "title": "Resolve Account",
-    "description": "Verify bank account details",
+    "description": "Verify bank account and mobile money details",
     "icon": "Search",
-    "pages": []
+    "pages": [
+        "resolveBankAccount",
+        "resolveMobileMoney",
+        "resolveLencoMoney",
+        "resolveLencoMerchant"
+    ]
 }

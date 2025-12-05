@@ -2,5 +2,8 @@
     "title": "Transactions",
     "description": "View transaction history",
     "icon": "ScrollText",
-    "pages": []
+    "pages": [
+        "getTransactions",
+        "getTransactionById"
+    ]
 }

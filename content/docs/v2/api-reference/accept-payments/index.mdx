@@ -1,12 +1,186 @@
 ---
 title: Accept Payments
-description: Generate virtual accounts and accept payments from customers
+description: Accept payments using the Lenco payment widget
 ---
 
 # Accept Payments
 
-Accept payments from your customers by generating dedicated virtual account numbers. Customers can transfer funds to these accounts, and you'll receive instant notifications via webhooks.
+For web payments, use the Lenco popup widget instead of direct API calls. This provides a seamless checkout experience for your customers.
 
-<Callout type="info">
-  API endpoints for Accept Payments will be generated from the OpenAPI specification.
+## Widget Integration
+
+<Steps>
+<Step>
+### Include the Widget Script
+
+Add the Lenco widget script to your page:
+
+```html
+<script src="https://pay.lenco.co/js/v1/inline.js"></script>
+```
+
+For sandbox testing, use:
+```html
+<script src="https://pay.sandbox.lenco.co/js/v1/inline.js"></script>
+```
+</Step>
+
+<Step>
+### Initialize Payment
+
+Call `LencoPay.getPaid()` with your payment configuration:
+
+```javascript
+LencoPay.getPaid({
+  key: 'YOUR_PUBLIC_KEY',
+  reference: 'unique-ref-123',
+  email: 'customer@email.com',
+  amount: 1000,
+  currency: "ZMW",
+  channels: ["card", "mobile-money"],
+  customer: { 
+    firstName: "John", 
+    lastName: "Doe", 
+    phone: "0971111111" 
+  },
+  onSuccess: function(response) {
+    // Payment successful - verify on your server
+    console.log('Payment successful:', response);
+  },
+  onClose: function() {
+    // Customer closed the payment window
+    console.log('Payment window closed');
+  },
+  onConfirmationPending: function() {
+    // Payment pending verification (e.g., mobile money)
+    console.log('Payment pending confirmation');
+  }
+});
+```
+</Step>
+
+<Step>
+### Handle Callbacks
+
+- **onSuccess**: Called when payment is successful. Always verify the payment on your server before fulfilling orders.
+- **onClose**: Called when the customer closes the payment modal without completing.
+- **onConfirmationPending**: Called for payments that require additional verification (e.g., mobile money authorization).
+</Step>
+</Steps>
+
+## Configuration Options
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `key` | string | Yes | Your Lenco public key |
+| `reference` | string | Yes | Unique transaction reference |
+| `email` | string | Yes | Customer's email address |
+| `amount` | number | Yes | Amount in smallest currency unit |
+| `currency` | string | Yes | Currency code (e.g., `ZMW`, `MWK`) |
+| `channels` | array | No | Payment channels: `card`, `mobile-money` |
+| `customer` | object | No | Customer details (firstName, lastName, phone) |
+| `onSuccess` | function | Yes | Callback on successful payment |
+| `onClose` | function | No | Callback when modal is closed |
+| `onConfirmationPending` | function | No | Callback for pending payments |
+
+## Verify Payment
+
+<Callout type="warn">
+Always verify payments on your server before fulfilling orders. Never trust client-side callbacks alone.
 </Callout>
+
+After receiving an `onSuccess` callback, verify the payment using the [Get Collection by Reference](/docs/v2/api-reference/collections/getCollectionByReference) endpoint:
+
+```javascript
+// Server-side verification
+const response = await fetch(
+  `https://api.lenco.co/access/v2/collections/status/${reference}`,
+  {
+    headers: {
+      'Authorization': `Bearer ${process.env.API_TOKEN}`
+    }
+  }
+);
+
+const { data } = await response.json();
+
+if (data.status === 'successful') {
+  // Payment verified - fulfill the order
+}
+```
+
+## Example: React Integration
+
+```tsx
+import { useEffect } from 'react';
+
+declare global {
+  interface Window {
+    LencoPay: {
+      getPaid: (config: PaymentConfig) => void;
+    };
+  }
+}
+
+interface PaymentConfig {
+  key: string;
+  reference: string;
+  email: string;
+  amount: number;
+  currency: string;
+  channels?: string[];
+  customer?: {
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+  };
+  onSuccess: (response: unknown) => void;
+  onClose?: () => void;
+  onConfirmationPending?: () => void;
+}
+
+export function PayButton({ 
+  amount, 
+  email, 
+  onSuccess 
+}: { 
+  amount: number; 
+  email: string;
+  onSuccess: () => void;
+}) {
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://pay.lenco.co/js/v1/inline.js';
+    script.async = true;
+    document.body.appendChild(script);
+    
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handlePayment = () => {
+    window.LencoPay.getPaid({
+      key: process.env.NEXT_PUBLIC_LENCO_PUBLIC_KEY!,
+      reference: `order-${Date.now()}`,
+      email,
+      amount,
+      currency: 'ZMW',
+      channels: ['card', 'mobile-money'],
+      onSuccess: (response) => {
+        // Verify payment on server then call onSuccess
+        onSuccess();
+      },
+      onClose: () => {
+        console.log('Payment cancelled');
+      }
+    });
+  };
+
+  return (
+    <button onClick={handlePayment}>
+      Pay {amount} ZMW
+    </button>
+  );
+}
+```
