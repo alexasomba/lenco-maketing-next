@@ -1,9 +1,22 @@
 {
     "title": "v2.0",
-    "description": "Lenco API v2 (Coming Soon)",
+    "description": "Lenco API v2",
     "root": true,
     "icon": "Sparkles",
     "pages": [
-        "index"
+        "index",
+        "getting-started",
+        "---API Reference---",
+        "api-reference/accept-payments",
+        "api-reference/accounts",
+        "api-reference/banks",
+        "api-reference/resolve-account",
+        "api-reference/recipients",
+        "api-reference/transfers",
+        "api-reference/collections",
+        "api-reference/settlements",
+        "api-reference/transactions",
+        "api-reference/webhooks",
+        "api-reference/encryption"
     ]
 }

@@ -1,0 +1,116 @@
+---
+title: Getting Started
+description: Learn how to authenticate and make your first API request with Lenco API v2
+---
+
+# Getting Started
+
+This page will help you get started with Lenco API.
+
+To get your API token (also referred to as API key or secret key), kindly reach out to [support@lenco.co](mailto:support@lenco.co).
+
+## Securing Your API Token
+
+Someone who steals your Lenco API token can interact with your accounts on your behalf, so treat it as securely as you would treat any password. 
+
+<Callout type="warn" title="Security Warning">
+  Tokens should never be stored in source control. If you accidentally publicize a token via version control or other methods, you should immediately reach out to [support@lenco.co](mailto:support@lenco.co) to generate a new API token.
+</Callout>
+
+## Using the Token
+
+Authenticate your API calls by including your API token in the `Authorization` header of every request you make. Authorization headers should be in the following format:
+
+```
+Authorization: Bearer API_TOKEN
+```
+
+**Example:**
+
+```bash
+curl -H "Authorization: Bearer xo+CAiijrIy9XvZCYyhjrv0fpSAL6CfU8CgA+up1NXqK" \
+  https://api.lenco.co/access/v2/accounts
+```
+
+<Callout type="error" title="Authentication Required">
+  API requests made without authentication will fail with the status code `401: Unauthorized`. All API requests must be made over HTTPS.
+</Callout>
+
+## Requests and Response
+
+Both request body data and response data are formatted as JSON. Content type for responses will always be `application/json`.
+
+Generally, all responses will be in the following format:
+
+```json title="Response Format"
+{
+  "status": true,      // Only true if the request was processed successfully
+  "message": "string", // Explains the result - log this but don't use for checks
+  "data": {}           // Contains actionable result of processing if present
+}
+```
+
+### Response Keys
+
+| Key | Description |
+|-----|-------------|
+| `status` | Boolean indicating if the request was successful |
+| `message` | A string summary of the response. In case of an error, contains error description |
+| `data` | The result of your request - can be an object or array depending on the endpoint |
+| `meta` | Pagination context when retrieving lists (see below) |
+
+### Pagination
+
+When retrieving lists of resources, the `meta` key provides pagination information:
+
+```json title="Meta Key Structure"
+{
+  "meta": {
+    "total": 2,
+    "perPage": 50,
+    "currentPage": 1,
+    "pageCount": 1
+  }
+}
+```
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `total` | number | Total number of records |
+| `perPage` | number | Maximum records returned per request |
+| `currentPage` | number | Current page being returned (default: 1) |
+| `pageCount` | number | Total pages available based on `perPage` |
+
+## Errors
+
+Lenco's API is RESTful and uses conventional HTTP response codes to indicate the success or failure of requests.
+
+### HTTP Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200`, `201` | Request was successful. For transfers/collections, check the `data` object for the actual result |
+| `400` | Validation or client-side error occurred |
+| `401` | Unauthorized - invalid or missing API token |
+| `404` | Resource not found |
+| `500`, `501`, `502`, `503`, `504` | Server error on Lenco's end - please report these |
+
+### Error Codes
+
+If the HTTP response code is not `200` (or `201`), the response may include an `errorCode`:
+
+| Code | Description |
+|------|-------------|
+| `01` | Validation error - one or more parameters could not be validated |
+| `02` | Insufficient funds in account |
+| `03` | Transfer limit on the account has been exceeded |
+| `04` | Invalid or duplicate reference |
+| `05` | Invalid recipient account |
+| `06` | Restriction on debit account |
+| `07` | Invalid or duplicate bulk transfer reference |
+| `08` | Invalid number of objects in bulk transfer `transfers` parameter |
+| `09` | Invalid auth token or authorization denied |
+| `10` | General error |
+| `11` | Resource not found |
+| `12` | Invalid mobile number |
+| `13` | Access to resource denied |
