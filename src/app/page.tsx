@@ -1,9 +1,13 @@
 import Link from 'next/link';
 import { BookOpen, Newspaper } from 'lucide-react';
+import LencoHeader from '@/components/LencoHeader';
+import LencoFooter from '@/components/LencoFooter';
 
 export default function Home() {
 	return (
-		<main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 p-8">
+		<>
+			<LencoHeader />
+			<main className="flex-1 flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 p-8">
 			<div className="max-w-4xl w-full">
 				<div className="text-center mb-12">
 					<h1 className="text-4xl font-bold text-slate-900 dark:text-white mb-4">
@@ -75,11 +79,9 @@ export default function Home() {
 						</div>
 					</Link>
 				</div>
-
-				<p className="text-center mt-12 text-sm text-slate-500 dark:text-slate-500">
-					© {new Date().getFullYear()} Lenco. All rights reserved.
-				</p>
 			</div>
-		</main>
+			</main>
+			<LencoFooter />
+		</>
 	);
 }

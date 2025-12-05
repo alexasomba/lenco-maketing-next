@@ -1,15 +1,22 @@
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared';
+import Image from 'next/image';
 
 export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
       title: (
-        <>
-          <span className="font-bold text-lg">Lenco</span>
-          <span className="text-fd-muted-foreground text-sm ml-1">API</span>
-        </>
+        <div className="flex items-center gap-2">
+          <Image
+            src="/lenco-logo.svg"
+            alt="Lenco"
+            width={80}
+            height={24}
+            className="dark:invert"
+          />
+          <span className="text-fd-muted-foreground text-sm">Docs</span>
+        </div>
       ),
-      url: '/docs/v1',
+      url: '/',
     },
     githubUrl: 'https://github.com/lenco-co',
     links: [
