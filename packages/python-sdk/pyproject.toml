@@ -3,14 +3,14 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "lenco-sdk"
+name = "lenco-python"
 version = "2.0.0"
-description = "Official Lenco API SDK for Python"
+description = "Python SDK for Lenco API - Payments, Transfers, Collections"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.9"
 authors = [
-    { name = "Lenco", email = "developers@lenco.co" }
+    { name = "Alexander Asomba", email = "alex@asomba.com" }
 ]
 keywords = [
     "lenco",
@@ -49,9 +49,9 @@ dev = [
 ]
 
 [project.urls]
-Documentation = "https://docs.lenco.co/docs/v2/sdks#python"
-Repository = "https://github.com/lenco-ng/lenco-python"
-Issues = "https://github.com/lenco-ng/lenco-python/issues"
+Documentation = "https://docs.lenco.co"
+Repository = "https://github.com/alexasomba/lenco-python"
+Issues = "https://github.com/alexasomba/lenco-python/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/lenco"]

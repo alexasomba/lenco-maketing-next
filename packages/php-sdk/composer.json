@@ -1,16 +1,16 @@
 {
-    "name": "lenco/lenco-php",
-    "description": "Official Lenco API SDK for PHP",
+    "name": "alexasomba/lenco-php",
+    "description": "PHP SDK for Lenco API - Payments, Transfers, Collections",
     "version": "2.0.0",
     "type": "library",
     "license": "MIT",
     "authors": [
         {
-            "name": "Lenco",
-            "email": "developers@lenco.co"
+            "name": "Alexander Asomba",
+            "email": "alex@asomba.com"
         }
     ],
-    "homepage": "https://docs.lenco.co/docs/v2/sdks#php",
+    "homepage": "https://github.com/alexasomba/lenco-php",
     "keywords": [
         "lenco",
         "payments",

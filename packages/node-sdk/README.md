@@ -1,21 +1,21 @@
-# @lenco/sdk
+# lenco-node
 
-Official Lenco API SDK for Node.js
+Node.js SDK for Lenco API - Payments, Transfers, Collections
 
 ## Installation
 
 ```bash
-npm install @lenco/sdk
+npm install lenco-node
 # or
-yarn add @lenco/sdk
+yarn add lenco-node
 # or
-pnpm add @lenco/sdk
+pnpm add lenco-node
 ```
 
 ## Quick Start
 
 ```typescript
-import { Lenco } from '@lenco/sdk';
+import { Lenco } from 'lenco-node';
 
 const lenco = new Lenco({
   apiKey: process.env.LENCO_API_KEY,
@@ -47,16 +47,20 @@ const collection = await lenco.collections.fromMobileMoney({
 
 ## Features
 
-- ✅ Full TypeScript support
-- ✅ Accounts, Banks, Transfers, Collections, Settlements, Transactions APIs
-- ✅ Webhook signature verification
-- ✅ Automatic retries with exponential backoff
-- ✅ Request/response logging
-- ✅ ESM and CommonJS support
+- [x] Full TypeScript support
+- [x] Accounts, Banks, Transfers, Collections, Settlements, Transactions APIs
+- [x] Webhook signature verification
+- [x] Automatic retries with exponential backoff
+- [x] Request/response logging
+- [x] ESM and CommonJS support
 
 ## Documentation
 
-Full documentation available at [docs.lenco.co](https://docs.lenco.co/docs/v2/sdks#nodejs)
+Full API documentation available at [docs.lenco.co](https://docs.lenco.co)
+
+## Author
+
+Alexander Asomba ([@alexasomba](https://github.com/alexasomba)) · [𝕏 @alexasomba](https://x.com/alexasomba)
 
 ## License
 

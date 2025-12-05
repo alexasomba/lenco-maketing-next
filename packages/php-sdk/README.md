@@ -1,11 +1,11 @@
-# lenco/lenco-php
+# lenco-php
 
-Official Lenco API SDK for PHP
+PHP SDK for Lenco API - Payments, Transfers, Collections
 
 ## Installation
 
 ```bash
-composer require lenco/lenco-php
+composer require alexasomba/lenco-php
 ```
 
 ## Quick Start
@@ -68,15 +68,18 @@ public function register()
 
 ## Features
 
-- ✅ Full PHP 8.1+ support
-- ✅ Accounts, Banks, Transfers, Collections, Settlements, Transactions APIs
-- ✅ Webhook signature verification
-- ✅ Automatic retries with exponential backoff
-- ✅ Laravel service provider included
-
+- [x] Full PHP 8.1+ support
+- [x] Accounts, Banks, Transfers, Collections, Settlements, Transactions APIs
+- [x] Webhook signature verification
+- [x] Automatic retries with exponential backoff
+- [x] Laravel service provider included
 ## Documentation
 
-Full documentation available at [docs.lenco.co](https://docs.lenco.co/docs/v2/sdks#php)
+Full API documentation available at [docs.lenco.co](https://docs.lenco.co)
+
+## Author
+
+Alexander Asomba ([@alexasomba](https://github.com/alexasomba)) · [𝕏 @alexasomba](https://x.com/alexasomba)
 
 ## License
 

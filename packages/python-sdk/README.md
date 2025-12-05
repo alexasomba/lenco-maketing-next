@@ -1,13 +1,13 @@
-# lenco-sdk
+# lenco-python
 
-Official Lenco API SDK for Python
+Python SDK for Lenco API - Payments, Transfers, Collections
 
 ## Installation
 
 ```bash
-pip install lenco-sdk
+pip install lenco-python
 # or
-poetry add lenco-sdk
+poetry add lenco-python
 ```
 
 ## Quick Start
@@ -66,16 +66,20 @@ asyncio.run(main())
 
 ## Features
 
-- ✅ Full type hints support
-- ✅ Sync and async clients
-- ✅ Accounts, Banks, Transfers, Collections, Settlements, Transactions APIs
-- ✅ Webhook signature verification
-- ✅ Automatic retries with exponential backoff
-- ✅ Pydantic models for request/response validation
+- [x] Full type hints support
+- [x] Sync and async clients
+- [x] Accounts, Banks, Transfers, Collections, Settlements, Transactions APIs
+- [x] Webhook signature verification
+- [x] Automatic retries with exponential backoff
+- [x] Pydantic models for request/response validation
 
 ## Documentation
 
-Full documentation available at [docs.lenco.co](https://docs.lenco.co/docs/v2/sdks#python)
+Full API documentation available at [docs.lenco.co](https://docs.lenco.co)
+
+## Author
+
+Alexander Asomba ([@alexasomba](https://github.com/alexasomba)) · [𝕏 @alexasomba](https://x.com/alexasomba)
 
 ## License
 

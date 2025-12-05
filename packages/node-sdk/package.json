@@ -1,7 +1,7 @@
 {
-    "name": "@lenco/sdk",
+    "name": "lenco-node",
     "version": "2.0.0",
-    "description": "Official Lenco API SDK for Node.js",
+    "description": "Node.js SDK for Lenco API - Payments, Transfers, Collections",
     "main": "dist/index.js",
     "module": "dist/index.mjs",
     "types": "dist/index.d.ts",
@@ -32,16 +32,16 @@
         "mobile-money",
         "africa"
     ],
-    "author": "Lenco <developers@lenco.co>",
+    "author": "Alexander Asomba <alex@asomba.com>",
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/lenco-ng/lenco-node.git"
+        "url": "git+https://github.com/alexasomba/lenco-node.git"
     },
     "bugs": {
-        "url": "https://github.com/lenco-ng/lenco-node/issues"
+        "url": "https://github.com/alexasomba/lenco-node/issues"
     },
-    "homepage": "https://docs.lenco.co/docs/v2/sdks#nodejs",
+    "homepage": "https://github.com/alexasomba/lenco-node#readme",
     "engines": {
         "node": ">=18"
     },
