@@ -1,0 +1,42 @@
+---
+title: Getting started with Lenco (Zambia)
+description: Quick guide for Zambian businesses to start using Lenco for payments and collections.
+date: "2025-12-02"
+tags: ["Getting Started", "Zambia", "Business"]
+featured: false
+readTimeMinutes: 4
+author: "alex-asomba"
+thumbnail: "/images/blog/zambia-business.jpg"
+---
+
+# Getting started with Lenco — Zambia
+
+Whether you're a small shop or a growing startup in Zambia, Lenco helps you manage funds and collect payments easily.
+
+## 1. Sign up and request your API token
+
+Register on the Lenco dashboard and follow the instructions to obtain your API token. Keep it secret — it's your integration key.
+
+## 2. Base URL and authentication
+
+All requests should be made to `https://api.lenco.co/access/v1` using your token in the Authorization header:
+
+```
+Authorization: Bearer YOUR_API_TOKEN
+```
+
+## 3. Use virtual accounts for collections
+
+Create virtual accounts for invoices and orders — this helps match incoming payments to their references automatically.
+
+## 4. Accept payments and view transactions
+
+List your accounts and transactions using the `/accounts` and `/transactions` endpoints to build dashboards or reporting.
+
+## 5. Monitor with webhooks
+
+Set up a webhook URL to receive realtime notifications. Remember to verify signatures using the webhook hash key.
+
+---
+
+*This article is for businesses operating in Zambia looking for easy payment infrastructure.*

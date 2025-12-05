@@ -1,0 +1,47 @@
+---
+title: Getting started with Lenco (Nigeria)
+description: How to get up and running with Lenco's business banking tools in Nigeria.
+date: "2025-12-02"
+tags: ["Getting Started", "Nigeria", "API", "Business"]
+featured: false
+readTimeMinutes: 4
+author: "alex-asomba"
+thumbnail: "/images/blog/nigeria-business.jpg"
+---
+
+# Getting started with Lenco — Nigeria
+
+Lenco is built for businesses in Nigeria — from sole traders and startups to small and medium enterprises. This short guide explains the quickest way to start accepting payments and managing your business finances with Lenco.
+
+## 1. Create your account
+
+Register on the Lenco dashboard and request an API token from the integrations section. Keep this token safe — treat it like a password.
+
+## 2. Configure your API token
+
+All requests are made to `https://api.lenco.co/access/v1` and must include your token in the Authorization header:
+
+```
+Authorization: Bearer YOUR_API_TOKEN
+```
+
+## 3. Add a bank account
+
+Create or link a business bank account on your Lenco dashboard. Use the `/accounts` endpoints to list and manage accounts programmatically.
+
+## 4. Start sending and receiving payments
+
+- Use `/virtual-accounts` to create collection accounts for invoices and orders.
+- Use `/transfer` to send money to recipients and `/transactions` to fetch histories.
+
+## 5. Integrate webhooks
+
+Set up a webhook URL and verify the signature using the HMAC SHA512 algorithm and your `webhook_hash_key` to receive real-time notifications.
+
+## 6. Need help?
+
+Contact our support at [support@lenco.co](mailto:support@lenco.co) — we can help with onboarding and API testing.
+
+---
+
+*Published for Nigerian businesses and developers.*
