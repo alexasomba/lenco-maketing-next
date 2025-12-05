@@ -1,0 +1,18 @@
+'use client';
+
+import { FlickeringGrid } from '@/components/ui/flickering-grid';
+
+export function BlogHeaderMap() {
+  return (
+    <div className="absolute top-0 left-0 z-0 w-full h-[200px] [mask-image:linear-gradient(to_top,transparent_25%,black_95%)]">
+      <FlickeringGrid
+        className="absolute top-0 left-0 size-full"
+        squareSize={4}
+        gridGap={6}
+        color="#3b82f6"
+        maxOpacity={0.2}
+        flickerChance={0.05}
+      />
+    </div>
+  );
+}

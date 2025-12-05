@@ -9,6 +9,7 @@ import { TableOfContents } from '@/components/blog/table-of-contents';
 import { PromoContent } from '@/components/blog/promo-content';
 import { MobileTableOfContents } from '@/components/blog/mobile-toc';
 import { ReadMoreSection } from '@/components/blog/read-more-section';
+import { BlogHeaderMap } from '@/components/blog/blog-header-map';
 import { ShareButtons } from './share-buttons';
 import { ArrowLeft, Calendar, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -88,8 +89,11 @@ export default async function BlogPostPage({
   return (
     <div className="min-h-screen bg-background relative">
       {/* Header */}
-      <header className="relative z-10 border-b border-border">
-        <div className="max-w-7xl mx-auto flex flex-col gap-6 p-6">
+      <header className="relative z-10 border-b border-border overflow-hidden">
+        {/* Dotted Map Background */}
+        <BlogHeaderMap />
+        
+        <div className="relative z-10 max-w-7xl mx-auto flex flex-col gap-6 p-6">
           {/* Back button & Tags */}
           <div className="flex flex-wrap items-center gap-3 gap-y-5 text-sm text-muted-foreground">
             <Button variant="outline" asChild className="h-6 w-6 p-0">
