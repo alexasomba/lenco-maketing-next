@@ -13,6 +13,7 @@ import type { TOCItemType } from 'fumadocs-core/toc';
 import type { MDXComponents } from 'mdx/types';
 import { Feedback } from '@/components/feedback';
 import { onRateAction } from '@/app/actions/feedback';
+import { LLMCopyButton, ViewOptions } from '@/components/page-actions';
 
 interface PageData {
   body: React.ComponentType<{ components?: MDXComponents }>;
@@ -20,6 +21,7 @@ interface PageData {
   full?: boolean;
   title: string;
   description?: string;
+  _openapi?: Record<string, unknown>;
 }
 
 export default async function Page(props: {
@@ -32,10 +34,28 @@ export default async function Page(props: {
   const data = page.data as PageData;
   const MDX = data.body;
 
+  // Check if this is an OpenAPI-generated page
+  const isOpenAPIPage = !!data._openapi;
+
+  // Get file path for GitHub URL (may not exist for generated API docs)
+  const filePath = (page as unknown as { file?: { path: string } }).file?.path;
+  const githubUrl = filePath
+    ? `https://github.com/alexasomba/lenco-maketing-next/blob/main/content/docs/${filePath}`
+    : undefined;
+
   return (
     <DocsPage toc={data.toc} full={data.full}>
       <DocsTitle>{data.title}</DocsTitle>
       <DocsDescription>{data.description}</DocsDescription>
+      {!isOpenAPIPage && (
+        <div className="flex flex-row gap-2 items-center border-b pt-2 pb-6">
+          <LLMCopyButton markdownUrl={`${page.url}.mdx`} />
+          <ViewOptions
+            markdownUrl={`${page.url}.mdx`}
+            githubUrl={githubUrl}
+          />
+        </div>
+      )}
       <DocsBody>
         <MDX
           components={getMDXComponents({

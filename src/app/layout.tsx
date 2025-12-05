@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { RootProvider } from 'fumadocs-ui/provider/next';
+import { AISearch, AISearchTrigger, AISearchPanel } from '@/components/search';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -29,7 +30,13 @@ export default function RootLayout({
 				<link rel="icon" href="/favicon.svg" type="image/svg+xml"></link>
 			</head>
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
-				<RootProvider>{children}</RootProvider>
+				<RootProvider>
+					<AISearch>
+						<AISearchTrigger />
+						<AISearchPanel />
+						{children}
+					</AISearch>
+				</RootProvider>
 			</body>
 		</html>
 	);
