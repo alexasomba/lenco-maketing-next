@@ -6,6 +6,8 @@
     "pages": [
         "index",
         "getting-started",
+        "sdks",
+        "changelog",
         "---API Reference---",
         "api-reference/accept-payments",
         "api-reference/accounts",

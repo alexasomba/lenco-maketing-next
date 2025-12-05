@@ -1,0 +1,204 @@
+---
+title: Changelog
+description: Track updates and changes to the Lenco API v2
+icon: History
+---
+
+import { Layers, Calendar, Link, FileText } from 'lucide-react';
+
+# Changelog
+
+Stay up to date with the latest changes, improvements, and fixes to the Lenco API v2.
+
+<Callout type="info">
+  Subscribe to our [developer newsletter](mailto:support@lenco.co) to get notified about API updates.
+</Callout>
+
+---
+
+## December 2024
+
+### v2.0.0 — General Availability
+
+<Accordions>
+<Accordion title="🚀 New Features">
+
+#### Multi-Country Support
+- **Nigeria (NG)**: Full support for bank transfers and transactions
+- **Zambia (ZM)**: Mobile money (Airtel, MTN, Zamtel) and bank transfers
+- **Malawi (MW)**: Mobile money (Airtel, TNM) support
+
+#### New Payment Methods
+- **Mobile Money Collections**: Accept payments via Airtel, MTN, Zamtel, TNM
+- **Card Collections**: Accept card payments with 3DS authentication
+- **Lenco Money**: Transfer to Lenco wallets instantly
+- **Lenco Merchant**: Pay merchants via till number
+
+#### Enhanced Transfers
+- `POST /transfers/mobile-money` — Send to mobile money accounts
+- `POST /transfers/lenco-money` — Send to Lenco wallets
+- `POST /transfers/lenco-merchant` — Pay Lenco merchants
+- `POST /transfers/account` — Internal account transfers
+
+#### Collections API
+- `POST /collections/mobile-money` — Collect via mobile money
+- `POST /collections/card` — Collect via card (encrypted payload)
+- `GET /collections/status/:reference` — Check collection status
+
+#### Settlements
+- Real-time settlement tracking
+- Instant and next-day settlement options
+- Settlement webhooks
+
+#### Security
+- `GET /encryption-key` — RSA public key for card encryption
+- JWE encryption for sensitive payloads
+- Enhanced webhook signature verification
+
+</Accordion>
+
+<Accordion title="🔄 Changes from v1">
+
+#### Breaking Changes
+- Base URL changed from `/access/v1` to `/access/v2`
+- Transfer endpoints restructured by destination type
+- Collection endpoints added (new in v2)
+- Settlement tracking (new in v2)
+
+#### Endpoint Mapping
+
+| v1 Endpoint | v2 Endpoint |
+|-------------|-------------|
+| `POST /transactions` | `POST /transfers/bank-account` |
+| `POST /transactions/bulk` | *(Bulk transfers coming soon)* |
+| `GET /transactions/:id` | `GET /transfers/:id` |
+| N/A | `POST /collections/mobile-money` |
+| N/A | `POST /collections/card` |
+
+#### Response Format
+The response envelope remains consistent:
+```json
+{
+  "status": true,
+  "message": "Success",
+  "data": { ... },
+  "meta": { ... }  // for paginated responses
+}
+```
+
+</Accordion>
+
+<Accordion title="📚 Documentation">
+
+- Complete OpenAPI 3.1 specification
+- Interactive API playground
+- Code examples in cURL, Node.js, Python
+- Webhook integration guide
+- SDK documentation
+
+</Accordion>
+</Accordions>
+
+---
+
+## Migration Guide
+
+### Migrating from v1 to v2
+
+<Steps>
+<Step>
+### Update Base URL
+
+Change your API base URL:
+
+```diff
+- https://api.lenco.co/access/v1
++ https://api.lenco.co/access/v2
+```
+</Step>
+
+<Step>
+### Update Transfer Endpoints
+
+v2 uses specific endpoints for each transfer type:
+
+```javascript
+// v1: Single endpoint for all transfers
+POST /transactions
+{
+  "accountId": "...",
+  "accountNumber": "0123456789",
+  "bankId": "..."
+}
+
+// v2: Type-specific endpoints
+POST /transfers/bank-account
+POST /transfers/mobile-money
+POST /transfers/lenco-money
+POST /transfers/lenco-merchant
+```
+</Step>
+
+<Step>
+### Add Collections (Optional)
+
+If accepting payments, integrate the new Collections API:
+
+```javascript
+// Mobile money collection
+POST /collections/mobile-money
+{
+  "amount": 1000,
+  "reference": "order-123",
+  "phone": "0971234567",
+  "operator": "airtel",
+  "country": "zm"
+}
+```
+</Step>
+
+<Step>
+### Update Webhook Handlers
+
+New webhook events in v2:
+
+| Event | Description |
+|-------|-------------|
+| `collection.successful` | Payment received |
+| `collection.failed` | Payment failed |
+| `collection.settled` | Funds settled to account |
+
+</Step>
+</Steps>
+
+---
+
+## Upcoming Features
+
+<Cards>
+  <Card title="Bulk Transfers" icon={<Layers />}>
+    Send multiple transfers in a single API call
+  </Card>
+  <Card title="Scheduled Payments" icon={<Calendar />}>
+    Schedule transfers for future dates
+  </Card>
+  <Card title="Payment Links" icon={<Link />}>
+    Generate shareable payment links
+  </Card>
+  <Card title="Invoicing API" icon={<FileText />}>
+    Create and manage invoices programmatically
+  </Card>
+</Cards>
+
+---
+
+## Version Support
+
+| Version | Status | End of Life |
+|---------|--------|-------------|
+| v2.0 | **Active** | — |
+| v1.0 | **Active** | - |
+
+<Callout type="warn">
+  v1 API will enter maintenance mode in the distant future. We recommend migrating to v2 for new features and improvements.
+</Callout>

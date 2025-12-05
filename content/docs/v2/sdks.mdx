@@ -1,0 +1,432 @@
+---
+title: SDKs & Libraries
+description: Official Lenco SDKs and community libraries for faster integration
+icon: Package
+---
+
+import { Hexagon, Code, Braces } from 'lucide-react';
+
+# SDKs & Libraries
+
+Integrate Lenco API faster with our official SDKs and community-maintained libraries.
+
+<Callout type="info">
+  All official SDKs are open source. Contributions are welcome!
+</Callout>
+
+---
+
+## Official SDKs
+
+<Cards>
+  <Card title="Node.js SDK" icon={<Hexagon />} href="#nodejs">
+    Full-featured SDK for Node.js applications
+  </Card>
+  <Card title="Python SDK" icon={<Code />} href="#python">
+    Python library for backend integrations
+  </Card>
+  <Card title="PHP SDK" icon={<Braces />} href="#php">
+    PHP library for Laravel and other frameworks
+  </Card>
+</Cards>
+
+---
+
+## Node.js
+
+### Installation
+
+<Tabs items={["npm", "yarn", "pnpm"]}>
+<Tab value="npm">
+```bash
+npm install @lenco/sdk
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @lenco/sdk
+```
+</Tab>
+<Tab value="pnpm">
+```bash
+pnpm add @lenco/sdk
+```
+</Tab>
+</Tabs>
+
+### Quick Start
+
+```typescript
+import { Lenco } from '@lenco/sdk';
+
+const lenco = new Lenco({
+  apiKey: process.env.LENCO_API_KEY,
+  environment: 'production', // or 'sandbox'
+});
+
+// Get accounts
+const accounts = await lenco.accounts.list();
+
+// Transfer to bank account
+const transfer = await lenco.transfers.toBankAccount({
+  accountId: 'your-account-uuid',
+  accountNumber: '0123456789',
+  bankId: 'bank-uuid',
+  amount: 10000,
+  reference: 'payment-001',
+  narration: 'Payment for services',
+});
+
+// Collect via mobile money
+const collection = await lenco.collections.fromMobileMoney({
+  amount: 5000,
+  reference: 'order-123',
+  phone: '0971234567',
+  operator: 'airtel',
+  country: 'zm',
+});
+```
+
+### Features
+
+| Feature | Status |
+|---------|--------|
+| Accounts API | ✅ |
+| Banks API | ✅ |
+| Transfers API | ✅ |
+| Collections API | ✅ |
+| Settlements API | ✅ |
+| Transactions API | ✅ |
+| Webhooks Verification | ✅ |
+| TypeScript Support | ✅ |
+| Automatic Retries | ✅ |
+| Request Logging | ✅ |
+
+### Webhook Verification
+
+```typescript
+import { Lenco } from '@lenco/sdk';
+
+const lenco = new Lenco({ apiKey: process.env.LENCO_API_KEY });
+
+// Express.js example
+app.post('/webhooks/lenco', (req, res) => {
+  const signature = req.headers['x-lenco-signature'];
+  
+  const isValid = lenco.webhooks.verify(
+    req.body,
+    signature,
+    process.env.LENCO_API_KEY
+  );
+  
+  if (!isValid) {
+    return res.status(401).send('Invalid signature');
+  }
+  
+  const { event, data } = req.body;
+  
+  switch (event) {
+    case 'transfer.successful':
+      // Handle successful transfer
+      break;
+    case 'collection.successful':
+      // Handle successful collection
+      break;
+  }
+  
+  res.status(200).send('OK');
+});
+```
+
+### Resources
+
+- [npm package](https://www.npmjs.com/package/@lenco/sdk)
+- [GitHub repository](https://github.com/lenco-ng/lenco-node)
+- [API Reference](/docs/v2/api-reference/accounts)
+
+---
+
+## Python
+
+### Installation
+
+<Tabs items={["pip", "poetry"]}>
+<Tab value="pip">
+```bash
+pip install lenco-sdk
+```
+</Tab>
+<Tab value="poetry">
+```bash
+poetry add lenco-sdk
+```
+</Tab>
+</Tabs>
+
+### Quick Start
+
+```python
+from lenco import Lenco
+
+client = Lenco(
+    api_key="your-api-key",
+    environment="production"  # or "sandbox"
+)
+
+# Get accounts
+accounts = client.accounts.list()
+
+# Transfer to bank account
+transfer = client.transfers.to_bank_account(
+    account_id="your-account-uuid",
+    account_number="0123456789",
+    bank_id="bank-uuid",
+    amount=10000,
+    reference="payment-001",
+    narration="Payment for services"
+)
+
+# Collect via mobile money
+collection = client.collections.from_mobile_money(
+    amount=5000,
+    reference="order-123",
+    phone="0971234567",
+    operator="airtel",
+    country="zm"
+)
+```
+
+### Async Support
+
+```python
+import asyncio
+from lenco import AsyncLenco
+
+async def main():
+    client = AsyncLenco(api_key="your-api-key")
+    
+    # Concurrent requests
+    accounts, banks = await asyncio.gather(
+        client.accounts.list(),
+        client.banks.list(country="ng")
+    )
+    
+    print(f"Found {len(accounts)} accounts")
+    print(f"Found {len(banks)} banks")
+
+asyncio.run(main())
+```
+
+### Django Integration
+
+```python
+# settings.py
+LENCO_API_KEY = os.environ.get('LENCO_API_KEY')
+LENCO_ENVIRONMENT = 'production'
+
+# views.py
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from lenco import Lenco, verify_webhook
+
+client = Lenco(api_key=settings.LENCO_API_KEY)
+
+@csrf_exempt
+def webhook_handler(request):
+    signature = request.headers.get('X-Lenco-Signature')
+    
+    if not verify_webhook(request.body, signature, settings.LENCO_API_KEY):
+        return JsonResponse({'error': 'Invalid signature'}, status=401)
+    
+    payload = json.loads(request.body)
+    event = payload['event']
+    data = payload['data']
+    
+    # Handle webhook event
+    
+    return JsonResponse({'status': 'ok'})
+```
+
+### Resources
+
+- [PyPI package](https://pypi.org/project/lenco-sdk/)
+- [GitHub repository](https://github.com/lenco-ng/lenco-python)
+- [Documentation](https://lenco-python.readthedocs.io)
+
+---
+
+## PHP
+
+### Installation
+
+```bash
+composer require lenco/lenco-php
+```
+
+### Quick Start
+
+```php
+<?php
+
+use Lenco\Client;
+
+$lenco = new Client([
+    'api_key' => getenv('LENCO_API_KEY'),
+    'environment' => 'production', // or 'sandbox'
+]);
+
+// Get accounts
+$accounts = $lenco->accounts->list();
+
+// Transfer to bank account
+$transfer = $lenco->transfers->toBankAccount([
+    'accountId' => 'your-account-uuid',
+    'accountNumber' => '0123456789',
+    'bankId' => 'bank-uuid',
+    'amount' => 10000,
+    'reference' => 'payment-001',
+    'narration' => 'Payment for services',
+]);
+
+// Collect via mobile money
+$collection = $lenco->collections->fromMobileMoney([
+    'amount' => 5000,
+    'reference' => 'order-123',
+    'phone' => '0971234567',
+    'operator' => 'airtel',
+    'country' => 'zm',
+]);
+```
+
+### Laravel Integration
+
+```php
+// config/services.php
+'lenco' => [
+    'key' => env('LENCO_API_KEY'),
+    'environment' => env('LENCO_ENVIRONMENT', 'production'),
+],
+
+// app/Providers/AppServiceProvider.php
+use Lenco\Client;
+
+public function register()
+{
+    $this->app->singleton(Client::class, function ($app) {
+        return new Client([
+            'api_key' => config('services.lenco.key'),
+            'environment' => config('services.lenco.environment'),
+        ]);
+    });
+}
+
+// In your controller
+use Lenco\Client;
+
+class PaymentController extends Controller
+{
+    public function __construct(private Client $lenco) {}
+    
+    public function transfer(Request $request)
+    {
+        $transfer = $this->lenco->transfers->toBankAccount([
+            'accountId' => $request->account_id,
+            'accountNumber' => $request->account_number,
+            'bankId' => $request->bank_id,
+            'amount' => $request->amount,
+            'reference' => Str::uuid(),
+        ]);
+        
+        return response()->json($transfer);
+    }
+}
+```
+
+### Resources
+
+- [Packagist](https://packagist.org/packages/lenco/lenco-php)
+- [GitHub repository](https://github.com/lenco-ng/lenco-php)
+
+---
+
+## Community Libraries
+
+These libraries are maintained by the community. Use at your own discretion.
+
+| Language | Library | Author | Status |
+|----------|---------|--------|--------|
+| Go | [go-lenco](https://github.com/example/go-lenco) | Community | Beta |
+| Ruby | [lenco-ruby](https://github.com/example/lenco-ruby) | Community | Alpha |
+| Java | [lenco-java](https://github.com/example/lenco-java) | Community | Alpha |
+| .NET | [Lenco.NET](https://github.com/example/lenco-dotnet) | Community | Planned |
+
+<Callout type="warn">
+  Community libraries are not officially supported. Please report issues to the respective repositories.
+</Callout>
+
+---
+
+## Build Your Own
+
+If there's no SDK for your language, you can easily build your own using our [OpenAPI specification](/openapi-v2.yaml).
+
+### Generate Client Code
+
+Use [OpenAPI Generator](https://openapi-generator.tech) to generate a client:
+
+```bash
+# Install OpenAPI Generator
+npm install @openapitools/openapi-generator-cli -g
+
+# Generate TypeScript client
+openapi-generator-cli generate \
+  -i https://docs.lenco.co/openapi-v2.yaml \
+  -g typescript-fetch \
+  -o ./lenco-client
+
+# Generate Python client
+openapi-generator-cli generate \
+  -i https://docs.lenco.co/openapi-v2.yaml \
+  -g python \
+  -o ./lenco-python-client
+
+# Generate Go client
+openapi-generator-cli generate \
+  -i https://docs.lenco.co/openapi-v2.yaml \
+  -g go \
+  -o ./lenco-go-client
+```
+
+### Required Headers
+
+All requests must include:
+
+```http
+Authorization: Bearer YOUR_API_TOKEN
+Content-Type: application/json
+Accept: application/json
+```
+
+### Error Handling
+
+All SDKs should handle the standard error response:
+
+```json
+{
+  "status": false,
+  "message": "Validation error",
+  "errorCode": "01"
+}
+```
+
+See [Error Codes](/docs/v2/getting-started#error-codes) for a complete list.
+
+---
+
+## Support
+
+Having issues with an SDK?
+
+- **Official SDKs**: Open an issue on GitHub or contact [support@lenco.co](mailto:support@lenco.co)
+- **Community Libraries**: Open an issue on the respective repository
+- **API Issues**: Check our [status page](https://status.lenco.co) or contact support
