@@ -109,10 +109,55 @@ if (data.status === 'successful') {
 }
 ```
 
-## Example: React Integration
+## Framework Examples
 
+<Tabs items={['Vanilla JS', 'React', 'Next.js', 'Vue']}>
+<Tab value="Vanilla JS">
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Checkout</title>
+  <script src="https://pay.lenco.co/js/v1/inline.js"></script>
+</head>
+<body>
+  <button id="pay-btn">Pay Now</button>
+  
+  <script>
+    document.getElementById('pay-btn').addEventListener('click', function() {
+      LencoPay.getPaid({
+        key: 'YOUR_PUBLIC_KEY',
+        reference: 'order-' + Date.now(),
+        email: 'customer@email.com',
+        amount: 1000,
+        currency: 'ZMW',
+        channels: ['card', 'mobile-money'],
+        customer: {
+          firstName: 'John',
+          lastName: 'Doe',
+          phone: '0971111111'
+        },
+        onSuccess: function(response) {
+          // Verify on server before fulfilling order
+          fetch('/api/verify-payment', {
+            method: 'POST',
+            body: JSON.stringify({ reference: response.reference })
+          });
+        },
+        onClose: function() {
+          console.log('Payment cancelled');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+```
+</Tab>
+
+<Tab value="React">
 ```tsx
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 
 declare global {
   interface Window {
@@ -129,37 +174,79 @@ interface PaymentConfig {
   amount: number;
   currency: string;
   channels?: string[];
-  customer?: {
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-  };
+  customer?: { firstName?: string; lastName?: string; phone?: string };
   onSuccess: (response: unknown) => void;
   onClose?: () => void;
-  onConfirmationPending?: () => void;
 }
 
-export function PayButton({ 
-  amount, 
-  email, 
-  onSuccess 
-}: { 
-  amount: number; 
-  email: string;
-  onSuccess: () => void;
-}) {
+export function PayButton({ amount, email }: { amount: number; email: string }) {
   useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://pay.lenco.co/js/v1/inline.js';
     script.async = true;
     document.body.appendChild(script);
-    
-    return () => {
-      document.body.removeChild(script);
-    };
+    return () => { document.body.removeChild(script); };
   }, []);
 
-  const handlePayment = () => {
+  const handlePayment = useCallback(() => {
+    window.LencoPay.getPaid({
+      key: import.meta.env.VITE_LENCO_PUBLIC_KEY,
+      reference: `order-${Date.now()}`,
+      email,
+      amount,
+      currency: 'ZMW',
+      channels: ['card', 'mobile-money'],
+      onSuccess: async (response) => {
+        await fetch('/api/verify-payment', {
+          method: 'POST',
+          body: JSON.stringify(response)
+        });
+      },
+      onClose: () => console.log('Payment cancelled')
+    });
+  }, [amount, email]);
+
+  return <button onClick={handlePayment}>Pay {amount} ZMW</button>;
+}
+```
+</Tab>
+
+<Tab value="Next.js">
+```tsx
+'use client';
+
+import { useEffect, useCallback } from 'react';
+
+declare global {
+  interface Window {
+    LencoPay: {
+      getPaid: (config: PaymentConfig) => void;
+    };
+  }
+}
+
+interface PaymentConfig {
+  key: string;
+  reference: string;
+  email: string;
+  amount: number;
+  currency: string;
+  channels?: string[];
+  customer?: { firstName?: string; lastName?: string; phone?: string };
+  onSuccess: (response: unknown) => void;
+  onClose?: () => void;
+}
+
+export function PayButton({ amount, email }: { amount: number; email: string }) {
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://pay.lenco.co/js/v1/inline.js';
+    script.async = true;
+    document.body.appendChild(script);
+    return () => { document.body.removeChild(script); };
+  }, []);
+
+  const handlePayment = useCallback(() => {
     window.LencoPay.getPaid({
       key: process.env.NEXT_PUBLIC_LENCO_PUBLIC_KEY!,
       reference: `order-${Date.now()}`,
@@ -167,20 +254,109 @@ export function PayButton({
       amount,
       currency: 'ZMW',
       channels: ['card', 'mobile-money'],
-      onSuccess: (response) => {
-        // Verify payment on server then call onSuccess
-        onSuccess();
+      onSuccess: async (response) => {
+        // Call your API route to verify payment
+        await fetch('/api/payments/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(response)
+        });
       },
-      onClose: () => {
-        console.log('Payment cancelled');
-      }
+      onClose: () => console.log('Payment cancelled')
     });
-  };
+  }, [amount, email]);
 
-  return (
-    <button onClick={handlePayment}>
-      Pay {amount} ZMW
-    </button>
-  );
+  return <button onClick={handlePayment}>Pay {amount} ZMW</button>;
 }
 ```
+
+Create an API route to verify payments:
+
+```ts
+// app/api/payments/verify/route.ts
+import { NextResponse } from 'next/server';
+
+export async function POST(request: Request) {
+  const { reference } = await request.json();
+  
+  const res = await fetch(
+    `https://api.lenco.co/access/v2/collections/status/${reference}`,
+    {
+      headers: {
+        'Authorization': `Bearer ${process.env.LENCO_API_TOKEN}`
+      }
+    }
+  );
+  
+  const { data } = await res.json();
+  
+  if (data.status === 'successful') {
+    // Fulfill the order
+    return NextResponse.json({ verified: true });
+  }
+  
+  return NextResponse.json({ verified: false }, { status: 400 });
+}
+```
+</Tab>
+
+<Tab value="Vue">
+```vue
+<template>
+  <button @click="handlePayment">Pay {{ amount }} ZMW</button>
+</template>
+
+<script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue';
+
+declare global {
+  interface Window {
+    LencoPay: {
+      getPaid: (config: Record<string, unknown>) => void;
+    };
+  }
+}
+
+const props = defineProps<{
+  amount: number;
+  email: string;
+}>();
+
+const emit = defineEmits<{
+  success: [response: unknown];
+  close: [];
+}>();
+
+let script: HTMLScriptElement | null = null;
+
+onMounted(() => {
+  script = document.createElement('script');
+  script.src = 'https://pay.lenco.co/js/v1/inline.js';
+  script.async = true;
+  document.body.appendChild(script);
+});
+
+onUnmounted(() => {
+  if (script) document.body.removeChild(script);
+});
+
+function handlePayment() {
+  window.LencoPay.getPaid({
+    key: import.meta.env.VITE_LENCO_PUBLIC_KEY,
+    reference: `order-${Date.now()}`,
+    email: props.email,
+    amount: props.amount,
+    currency: 'ZMW',
+    channels: ['card', 'mobile-money'],
+    onSuccess: (response: unknown) => {
+      emit('success', response);
+    },
+    onClose: () => {
+      emit('close');
+    }
+  });
+}
+</script>
+```
+</Tab>
+</Tabs>

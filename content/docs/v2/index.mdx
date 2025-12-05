@@ -3,6 +3,8 @@ title: Welcome to Lenco API v2
 description: Build amazing web and mobile payment integration experiences with Lenco API v2
 ---
 
+import { Rocket, CreditCard, Send, Bell } from 'lucide-react';
+
 # Welcome to Lenco's API
 
 With Lenco API, you can access all your accounts and sub-accounts and their transaction histories. You'll learn how to build amazing web and mobile integration payment experiences with the Lenco API.
@@ -11,21 +13,25 @@ These docs cover the available endpoints and provide example code for using the 
 
 <Cards>
   <Card 
+    icon={<Rocket />}
     title="Getting Started" 
     href="/docs/v2/getting-started" 
     description="Learn how to authenticate and make your first API request" 
   />
   <Card 
+    icon={<CreditCard />}
     title="Accept Payments" 
     href="/docs/v2/api-reference/accept-payments" 
     description="Generate virtual accounts and accept payments from customers" 
   />
   <Card 
+    icon={<Send />}
     title="Transfers" 
     href="/docs/v2/api-reference/transfers" 
     description="Send money to bank accounts and recipients" 
   />
   <Card 
+    icon={<Bell />}
     title="Webhooks" 
     href="/docs/v2/api-reference/webhooks" 
     description="Receive real-time notifications for account events" 
