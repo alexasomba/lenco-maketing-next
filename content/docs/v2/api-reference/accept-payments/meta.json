@@ -2,5 +2,7 @@
     "title": "Accept Payments",
     "description": "Accept payments using the Lenco widget",
     "icon": "CreditCard",
-    "pages": ["index"]
+    "pages": [
+        "index"
+    ]
 }
