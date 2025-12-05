@@ -11,6 +11,8 @@ import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 import type { TOCItemType } from 'fumadocs-core/toc';
 import type { MDXComponents } from 'mdx/types';
+import { Feedback } from '@/components/feedback';
+import { onRateAction } from '@/app/actions/feedback';
 
 interface PageData {
   body: React.ComponentType<{ components?: MDXComponents }>;
@@ -42,6 +44,7 @@ export default async function Page(props: {
           })}
         />
       </DocsBody>
+      <Feedback onRateAction={onRateAction} />
     </DocsPage>
   );
 }
