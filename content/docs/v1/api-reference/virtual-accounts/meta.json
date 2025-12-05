@@ -1,0 +1,21 @@
+{
+    "title": "Virtual Accounts",
+    "icon": "CreditCard",
+    "defaultOpen": false,
+    "pages": [
+        "createVirtualAccount",
+        "listStaticVirtualAccounts",
+        "getVirtualAccountByAccountReference",
+        "getVirtualAccountByReference",
+        "getVirtualAccountByBvn",
+        "getStaticVirtualAccountByBvn",
+        "listVirtualAccountTransactions",
+        "getVirtualAccountTransactionById",
+        "listVirtualAccountsTransactions",
+        "listAllVirtualAccountTransactions",
+        "listAllRejectedVirtualAccountTransactions",
+        "listRejectedVirtualAccountTransactions",
+        "getRejectedVirtualAccountTransactionById",
+        "getRejectedVirtualAccountTransactionByIdGlobal"
+    ]
+}

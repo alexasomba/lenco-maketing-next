@@ -1,0 +1,11 @@
+{
+    "title": "Transfers",
+    "icon": "Send",
+    "defaultOpen": false,
+    "pages": [
+        "createTransfer",
+        "getTransferByReference",
+        "createBulkTransfers",
+        "getBulkTransferByReference"
+    ]
+}

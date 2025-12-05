@@ -1,0 +1,15 @@
+{
+    "title": "Point of Sale",
+    "icon": "Store",
+    "defaultOpen": false,
+    "pages": [
+        "listPOSTerminals",
+        "assignPOSTerminal",
+        "unassignPOSTerminal",
+        "getPOSTerminalById",
+        "listPOSTransactions",
+        "getPOSTransactionById",
+        "getPOSTransactionByReference",
+        "repushPOSTransactionWebhook"
+    ]
+}

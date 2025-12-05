@@ -1,0 +1,10 @@
+{
+    "title": "Recipients",
+    "icon": "Users",
+    "defaultOpen": false,
+    "pages": [
+        "listRecipients",
+        "createRecipient",
+        "getRecipientById"
+    ]
+}

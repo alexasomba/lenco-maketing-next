@@ -1,0 +1,22 @@
+{
+    "title": "v1.0",
+    "description": "Lenco API v1",
+    "root": true,
+    "icon": "CircleDot",
+    "pages": [
+        "index",
+        "getting-started",
+        "---API Reference---",
+        "api-reference/accounts",
+        "api-reference/banks",
+        "api-reference/recipients",
+        "api-reference/transactions",
+        "api-reference/transfers",
+        "api-reference/virtual-accounts",
+        "api-reference/bill-payments",
+        "api-reference/pos",
+        "api-reference/webhooks",
+        "---Resources---",
+        "pricing"
+    ]
+}

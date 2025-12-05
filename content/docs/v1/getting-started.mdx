@@ -1,0 +1,106 @@
+---
+title: Getting Started
+description: Learn how to authenticate and make your first API request
+---
+
+This page will help you get started with the Lenco API.
+
+To get your API token (also referred to as API key or secret key), kindly reach out to [support@lenco.co](mailto:support@lenco.co)
+
+## Securing Your API Token
+
+Someone who steals your Lenco API token can interact with your accounts on your behalf, so treat it as securely as you would treat any password. Tokens should never be stored in source control.
+
+<Callout type="warn" title="Token Compromised?">
+  If you accidentally publicize a token via version control or other methods, you should immediately reach out to [support@lenco.co](mailto:support@lenco.co) to generate a new API token.
+</Callout>
+
+## Using the Token
+
+Authenticate your API calls by including your API token in the Authorization header of every request you make. Authorization headers should be in the following format:
+
+```bash
+Authorization: Bearer API_TOKEN
+```
+
+### Example Request
+
+```bash
+curl -H "Authorization: Bearer xo+CAiijrIy9XvZCYyhjrv0fpSAL6CfU8CgA+up1NXqK" \
+  https://api.lenco.co/access/v1/accounts
+```
+
+<Callout type="error" title="Authentication Required">
+  API requests made without authentication will fail with the status code `401: Unauthorized`. All API requests must be made over HTTPS.
+</Callout>
+
+## Requests and Response
+
+Both request body data and response data are formatted as JSON. Content type for responses will always be `application/json`. Generally, all responses will be in the following format:
+
+```json title="Response Format"
+{
+  "status": true,      // Only true if the request was processed successfully
+  "message": "string", // Explains why status is false... Entirely informational
+  "data": {}           // Contains actionable result of processing if present
+}
+```
+
+While we generally recommend that developers use HTTP status codes to determine the result of an API call, we have provided a handy `status` key to let you know upfront if the request was successful or not.
+
+The `message` key is a string which will contain a summary of the response and its status. For instance when trying to retrieve a list of recipients, message might read "Recipients retrieved". In the event of an error, the message key will contain a description of the error.
+
+The `data` key is where you want to look at for the result of your request. It can either be an object, or an array depending on the request made.
+
+## Pagination
+
+When retrieving lists, pagination parameters can be passed along to limit the result set. The `meta` key will contain pagination information:
+
+```json title="Meta Key Structure"
+{
+  "meta": {
+    "total": 2,        // Total number of records
+    "perPage": 50,     // Maximum records per request
+    "currentPage": 1,  // Current page number
+    "pageCount": 1     // Total pages available
+  }
+}
+```
+
+| Key | Description |
+|-----|-------------|
+| `total` | Total number of records |
+| `perPage` | Maximum records returned per request |
+| `currentPage` | Current page (based on `page` query parameter, default: 1) |
+| `pageCount` | Total pages available based on `perPage` |
+
+## Error Codes
+
+Lenco's API is RESTful and uses conventional HTTP response codes to indicate the success or failure of requests.
+
+| Code | Description |
+|------|-------------|
+| `200`, `201` | Request was successful |
+| `400` | Validation or client side error occurred |
+| `401` | Request was not authorized (invalid or missing API key) |
+| `404` | Requested resource does not exist |
+| `500`, `501`, `502`, `503`, `504` | Server error (please report these) |
+
+### Error Response Format
+
+If the HTTP response code is not 200 (or 201), the response may include `errorCode` and/or `errors`:
+
+| Error Code | Description |
+|------------|-------------|
+| `01` | Validation error - One or more parameters could not be validated |
+| `02` | Insufficient funds in account |
+| `03` | Transfer limit on account exceeded |
+| `04` | Invalid or duplicate reference |
+| `05` | Invalid recipient account |
+| `06` | Restriction on debit account |
+| `07` | Invalid or duplicate bulk transfer reference |
+| `08` | Invalid number of objects in bulk transfer |
+| `21` | POS terminal was not found |
+| `22` | POS terminal has already been assigned |
+| `23` | POS terminal is currently not assigned |
+| `24` | POS transaction was not found |

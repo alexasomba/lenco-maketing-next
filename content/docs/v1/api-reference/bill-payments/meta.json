@@ -1,0 +1,23 @@
+{
+    "title": "Bill Payments",
+    "icon": "Receipt",
+    "defaultOpen": false,
+    "pages": [
+        "listBillVendors",
+        "listBillVendorsByCategory",
+        "getBillVendorById",
+        "listBillProducts",
+        "listBillProductsByCategory",
+        "listBillProductsByVendor",
+        "getBillProductById",
+        "lookupBillAccount",
+        "createBill",
+        "listBills",
+        "getBillById",
+        "getBillByReference",
+        "createBillPayment",
+        "listBillPayments",
+        "getBillPaymentById",
+        "getBillPaymentByReference"
+    ]
+}

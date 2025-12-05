@@ -1,0 +1,9 @@
+{
+    "title": "Banks",
+    "icon": "Building2",
+    "defaultOpen": false,
+    "pages": [
+        "getBanks",
+        "resolveAccount"
+    ]
+}

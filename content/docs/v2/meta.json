@@ -1,0 +1,9 @@
+{
+    "title": "v2.0",
+    "description": "Lenco API v2 (Coming Soon)",
+    "root": true,
+    "icon": "Sparkles",
+    "pages": [
+        "index"
+    ]
+}

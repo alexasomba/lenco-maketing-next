@@ -1,0 +1,18 @@
+{
+    "title": "Webhooks",
+    "icon": "Bell",
+    "defaultOpen": false,
+    "pages": [
+        "webhookTransactionSuccessful",
+        "webhookTransactionFailed",
+        "webhookAccountBalanceUpdated",
+        "webhookVirtualAccountTransaction",
+        "webhookVirtualAccountTransactionSettled",
+        "webhookVirtualAccountRejectedTransaction",
+        "webhookBillPaymentSuccessful",
+        "webhookBillPaymentFailed",
+        "webhookPOSTransaction",
+        "webhookPOSTransactionSettled",
+        "webhookPOSTerminalUpdated"
+    ]
+}

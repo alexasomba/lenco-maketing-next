@@ -1,9 +1,12 @@
 import { docs } from 'fumadocs-mdx:collections/server';
 import { loader, type InferPageType } from 'fumadocs-core/source';
+import { openapiPlugin } from 'fumadocs-openapi/server';
+import { lucideIconsPlugin } from 'fumadocs-core/source/lucide-icons';
 
 export const source = loader({
   baseUrl: '/docs',
   source: docs.toFumadocsSource(),
+  plugins: [lucideIconsPlugin(), openapiPlugin()],
 });
 
 /**

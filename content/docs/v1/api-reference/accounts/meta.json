@@ -1,0 +1,10 @@
+{
+    "title": "Accounts",
+    "icon": "Wallet",
+    "defaultOpen": false,
+    "pages": [
+        "getAccounts",
+        "getAccountById",
+        "getAccountBalance"
+    ]
+}

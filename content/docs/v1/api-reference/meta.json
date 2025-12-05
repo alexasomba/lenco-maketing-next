@@ -1,0 +1,17 @@
+{
+    "title": "API Reference",
+    "description": "Lenco Banking API v1 Endpoints",
+    "icon": "Code",
+    "defaultOpen": false,
+    "pages": [
+        "accounts",
+        "banks",
+        "recipients",
+        "transactions",
+        "transfers",
+        "virtual-accounts",
+        "bill-payments",
+        "pos",
+        "webhooks"
+    ]
+}

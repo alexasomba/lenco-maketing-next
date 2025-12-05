@@ -1,0 +1,11 @@
+{
+    "title": "Transactions",
+    "icon": "ArrowLeftRight",
+    "defaultOpen": false,
+    "pages": [
+        "listTransactions",
+        "createTransaction",
+        "getTransactionById",
+        "getTransactionByReference"
+    ]
+}
