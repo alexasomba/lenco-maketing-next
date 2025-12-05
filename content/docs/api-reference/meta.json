@@ -64,6 +64,18 @@
         "listPOSTransactions",
         "getPOSTransactionById",
         "getPOSTransactionByReference",
-        "repushPOSTransactionWebhook"
+        "repushPOSTransactionWebhook",
+        "---Webhooks---",
+        "webhookTransactionSuccessful",
+        "webhookTransactionFailed",
+        "webhookAccountBalanceUpdated",
+        "webhookVirtualAccountTransaction",
+        "webhookVirtualAccountTransactionSettled",
+        "webhookVirtualAccountRejectedTransaction",
+        "webhookBillPaymentSuccessful",
+        "webhookBillPaymentFailed",
+        "webhookPOSTransaction",
+        "webhookPOSTransactionSettled",
+        "webhookPOSTerminalUpdated"
     ]
 }
