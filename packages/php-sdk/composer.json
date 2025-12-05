@@ -1,0 +1,51 @@
+{
+    "name": "lenco/lenco-php",
+    "description": "Official Lenco API SDK for PHP",
+    "version": "2.0.0",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lenco",
+            "email": "developers@lenco.co"
+        }
+    ],
+    "homepage": "https://docs.lenco.co/docs/v2/sdks#php",
+    "keywords": [
+        "lenco",
+        "payments",
+        "api",
+        "sdk",
+        "fintech",
+        "mobile-money",
+        "africa"
+    ],
+    "require": {
+        "php": "^8.1",
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "phpstan/phpstan": "^1.0",
+        "friendsofphp/php-cs-fixer": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Lenco\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Lenco\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "phpstan": "phpstan analyse src --level=8",
+        "cs-fix": "php-cs-fixer fix src"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable"
+}
