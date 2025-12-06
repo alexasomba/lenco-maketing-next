@@ -11,7 +11,7 @@ export const baseOptions: BaseLayoutProps = {
 		},
 		{
 			text: "API Reference",
-			url: "/docs/api-reference",
+			url: "/api-reference",
 		},
 	],
 };

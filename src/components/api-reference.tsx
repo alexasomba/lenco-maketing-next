@@ -6,13 +6,14 @@ import { useState } from "react";
 
 const API_VERSIONS = {
 	v2: {
-		label: "v2 (Latest)",
+		label: "v2",
 		url: "/openapi-v2.yaml",
 		title: "Lenco API V2 Reference",
 		description: "Lenco API v2 - Collections, Transfers, Settlements",
 	},
 	v1: {
-		label: "v1 (Legacy)",
+		default: true,
+		label: "v1",
 		url: "/openapi.yaml",
 		title: "Lenco API V1 Reference",
 		description: "Lenco API v1 - Accounts, Virtual Accounts, Bill Payments, POS",
@@ -60,7 +61,7 @@ export function APIReference({ defaultVersion = "v2" }: { defaultVersion?: ApiVe
 						url: currentApi.url,
 						theme: "default",
 						layout: "modern",
-						showSidebar: false,
+						showSidebar: true,
 						hideClientButton: false,
 						operationTitleSource: "summary",
 						persistAuth: false,
@@ -72,7 +73,7 @@ export function APIReference({ defaultVersion = "v2" }: { defaultVersion?: ApiVe
 						withDefaultFonts: true,
 						defaultOpenAllTags: false,
 						searchHotKey: "k",
-						hideDownloadButton: false,
+						hideDownloadButton: true,
 						// Show all HTTP clients (empty array = show all)
 						hiddenClients: [],
 						// Set default HTTP client to Shell/curl
