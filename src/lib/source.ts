@@ -1,7 +1,11 @@
-import { docs } from "fumadocs-mdx:collections/server";
+import { docs } from "@/.source/server";
 import { loader } from "fumadocs-core/source";
+import type { InferPageType, InferMetaType } from "fumadocs-core/source";
 
 export const source = loader({
 	baseUrl: "/docs",
 	source: docs.toFumadocsSource(),
 });
+
+export type DocsPage = InferPageType<typeof source>;
+export type DocsMeta = InferMetaType<typeof source>;

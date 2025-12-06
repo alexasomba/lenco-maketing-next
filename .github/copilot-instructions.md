@@ -1,61 +1,236 @@
-Welcome — here's the concise, repo-specific guidance for an AI coding assistant working on this project.
+# Copilot Instructions for Lenco Marketing Next.js Project
 
-Summary (big picture)
-- This is a Next.js app (app dir) configured to run on OpenNext / Cloudflare. Key packages are in package.json — Next 15.x + React 19.x are used.
-- This repo includes fumadocs support (MDX-driven docs) via `fumadocs-mdx`, `fumadocs-core`, and an optional `fumadocs-ui` package. The docs content lives in `content/docs` and a generated `.source/` helper is used at runtime.
+This document provides guidance for AI coding agents working with this codebase.
 
-Key files & where to look first
-- next.config.ts — MDX integration via `createMDX` from `fumadocs-mdx/next`.
-- source.config.ts — defines the fumadocs collections (dir: `content/docs`).
-- .source/ — auto-generated helpers (server/browser/dynamic) created by fumadocs pipeline. Treat this as generated code.
-- src/lib/source.ts — a local loader wrapper that mounts `docs.toFumadocsSource()` onto baseUrl `/docs`.
-- src/app/docs/* — example route and layout we added; serves `content/docs` MDX files. See `src/app/docs/page.tsx` and `src/app/docs/layout.tsx`.
-- package.json scripts — dev, build, preview, deploy and a `cf-typegen` script for Cloudflare types.
+## Project Overview
 
-Developer workflows & commands (explicit)
-- Run locally (fast dev): pnpm dev
-- Build for production: pnpm build (Next will generate MDX artifacts at build time) — watch the console for [MDX] generated files messages
-- Preview Cloudflare target locally: pnpm preview
-- Deploy to Cloudflare via opennext: pnpm deploy (runs opennextjs-cloudflare build && deploy)
-- Type-gen for Cloudflare binding types: pnpm cf-typegen
+This is a **Next.js 15** documentation and marketing site for Lenco, using:
+- **Fumadocs** (v15) for documentation system
+- **Cloudflare Workers** deployment via `@opennextjs/cloudflare`
+- **Tailwind CSS 4** for styling
+- **shadcn/ui** for UI components
+- **TypeScript** for type safety
+- **pnpm** as the package manager
 
-Important project patterns & constraints
-- App structure uses the Next.js "app" directory for routes (React server components + client components). Typical files: `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/docs/*`.
-- Fumadocs MDX flow:
-  - Add content under `content/docs/*` as `.md` or `.mdx` files.
-  - `source.config.ts` drives what gets collected. `.source/` is generated and referenced using tsconfig path mapping `fumadocs-mdx:collections/*` → `./.source/*`.
-  - Server helpers live in `.source/server.ts`, browser helpers under `.source/browser.ts`, and `.source/dynamic.ts` for async/dynamic generation.
-  - At runtime you may use `docs.toFumadocsSource()` and `fumadocs-core/loader` to mount docs at `/docs` (see `src/lib/source.ts`).
+## Architecture
 
-TypeScript & linting notes (what trips builds)
-- tsconfig.json uses strict checks. There is a project-specific path mapping: `fumadocs-mdx:collections/*` → `./.source/*`. Keep it relative (leading `./`) — otherwise Next build fails.
-- Add `.d.ts` for MDX imports (we added `src/types/mdx.d.ts`) so `.mdx` imports compile. Prefer `React.ComponentType<Record<string, unknown>>` to avoid `any` lint errors.
-- The project uses ESLint via `next lint` and strict TypeScript; aim to satisfy both during edits.
+### Directory Structure
 
-Fumadocs UI compatibility caveat
-- `fumadocs-ui` is installed, but some UI components expect React APIs (e.g., `useEffectEvent`) not provided by the currently pinned React 19.1.x. If you want the full UI (sidebar, search, layouts) enabled you should:
-  1) Upgrade Next + React to versions compatible with `fumadocs-ui`'s peer deps, or
-  2) Replace the docs route with a custom wrapper using `fumadocs-ui/provider/next` or compose UI pieces from `fumadocs-core` and `fumadocs-ui` selectively.
+```
+├── content/docs/           # MDX documentation files
+├── src/
+│   ├── app/                # Next.js App Router
+│   │   ├── docs/           # Documentation routes
+│   │   │   ├── [[...slug]]/ # Dynamic docs pages
+│   │   │   └── layout.tsx  # DocsLayout wrapper
+│   │   ├── layout.tsx      # Root layout with RootProvider
+│   │   ├── layout.config.tsx # Base layout options
+│   │   └── globals.css     # Global styles + Tailwind
+│   ├── components/ui/      # shadcn/ui components
+│   ├── lib/
+│   │   ├── source.ts       # Fumadocs source configuration
+│   │   └── utils.ts        # Utility functions (cn helper)
+│   └── types/              # TypeScript type definitions
+├── .source/                # Generated fumadocs-mdx output (gitignored)
+├── source.config.ts        # Fumadocs MDX collection config
+├── mdx-components.tsx      # MDX component mappings
+├── wrangler.jsonc          # Cloudflare Workers config
+└── open-next.config.ts     # OpenNext Cloudflare config
+```
 
-How to add docs quickly (example)
-1. Create a file: content/docs/<area>/some-topic.mdx
-2. Add frontmatter: title / description — MDX is processed by `fumadocs-mdx`.
-3. Import or reference generated helpers if needed: `import { docs } from 'fumadocs-mdx:collections/server';` or `docs.toFumadocsSource()` in `src/lib/source.ts`.
-4. The app route `/docs` will pick up and render MDX. If you need a UI wrapper, re-enable `fumadocs-ui/provider/next` once React/Next are compatible.
+## Key Patterns & Conventions
 
-When editing or debugging docs flows
-- Watch for MDX generation logs during `pnpm build` (the tool prints `[MDX] generated files`).
-- If you change `source.config.ts` you may need to re-run builds or the dynamic generator to refresh `.source` artifacts.
+### 1. Fumadocs Documentation
 
-Quick troubleshooting pointers
-- Build errors referencing `useEffectEvent` or other missing React APIs → React/Next version mismatch; either pin compatible versions or avoid specific UI exports until upgraded.
-- Type errors around path mapping or `.source/*` imports → ensure tsconfig uses `"./.source/*"` not `.source/*`.
-- MDX import type errors → confirm `src/types/mdx.d.ts` exists and is typed to avoid ESLint `no-explicit-any`.
+#### Source Configuration
+- MDX docs are defined in `source.config.ts` using `defineDocs()`
+- The source loader is configured in `src/lib/source.ts`
+- Generated content is output to `.source/` directory
 
-If you need me to (choose one):
-- Enable full `fumadocs-ui` by upgrading Next/React and wiring the UI routes (I can perform dependency upgrades and fix resulting issues), or
-- Keep docs as MDX static rendering and expand examples, tests, or CI flows for content (smaller, safer change).
+```typescript
+// source.config.ts pattern
+import { defineDocs, defineConfig } from 'fumadocs-mdx/config';
 
-Examples of files I used to generate these notes: `next.config.ts`, `source.config.ts`, `src/lib/source.ts`, `src/app/docs/*`, `content/docs/*`, `tsconfig.json` and `package.json`.
+export const docs = defineDocs({
+  dir: 'content/docs',
+});
 
-If anything above looks missing or there's a different workflow (CI, external services) you rely on, tell me and I'll update these instructions.
+export default defineConfig();
+```
+
+```typescript
+// src/lib/source.ts pattern
+import { docs } from "@/.source/server";
+import { loader } from "fumadocs-core/source";
+
+export const source = loader({
+  baseUrl: "/docs",
+  source: docs.toFumadocsSource(),
+});
+```
+
+#### Creating New Documentation Pages
+1. Add `.mdx` files to `content/docs/`
+2. Include frontmatter with `title` and `description`
+3. The page tree is automatically generated
+
+Example MDX frontmatter:
+```mdx
+---
+title: Page Title
+description: Brief description for SEO and page header
+---
+```
+
+### 2. Cloudflare Workers Compatibility
+
+**IMPORTANT**: This project is deployed to Cloudflare Workers, which has specific constraints:
+
+- Use `export const dynamic = "force-dynamic"` for pages that need dynamic rendering
+- Avoid Node.js-specific APIs not available in Workers runtime
+- Use `wrangler.jsonc` for Cloudflare configuration
+- The `nodejs_compat` compatibility flag is enabled
+
+```typescript
+// Example for dynamic pages
+export const dynamic = "force-dynamic";
+```
+
+### 3. Styling Guidelines
+
+#### Tailwind CSS 4
+- CSS is configured with Tailwind 4's CSS-first approach
+- Import order in `globals.css`:
+  1. `@import "tailwindcss"`
+  2. `@import "fumadocs-ui/css/neutral.css"`
+  3. `@import "fumadocs-ui/css/preset.css"`
+  4. Custom theme variables
+
+#### Using cn() Utility
+Always use the `cn()` utility from `@/lib/utils` for conditional class names:
+```typescript
+import { cn } from "@/lib/utils";
+
+<div className={cn("base-class", condition && "conditional-class")} />
+```
+
+### 4. Component Patterns
+
+#### shadcn/ui Components
+- Components are in `src/components/ui/`
+- Use the shadcn CLI to add new components: `pnpm dlx shadcn@latest add <component>`
+- Components use class-variance-authority (CVA) for variants
+
+#### MDX Components
+- Custom MDX components are defined in `mdx-components.tsx`
+- Extend `defaultMdxComponents` from `fumadocs-ui/mdx`
+
+### 5. TypeScript Conventions
+
+#### Path Aliases
+Use the configured path aliases:
+- `@/*` → `./src/*`
+- `@/.source/*` → `./.source/*`
+- `@/mdx-components` → `./mdx-components.tsx`
+
+#### Type Imports
+Prefer type-only imports where applicable:
+```typescript
+import type { Metadata } from "next";
+import type { ReactNode, FC } from "react";
+```
+
+### 6. Layout Structure
+
+#### Root Layout (`src/app/layout.tsx`)
+- Wraps entire app with `RootProvider` from fumadocs-ui
+- Includes Inter font and global CSS
+- Sets `suppressHydrationWarning` for theme handling
+
+#### Docs Layout (`src/app/docs/layout.tsx`)
+- Uses `DocsLayout` from fumadocs-ui
+- Receives `source.pageTree` for navigation
+- Extends `baseOptions` from layout.config
+
+#### Base Options (`src/app/layout.config.tsx`)
+- Defines shared layout options (nav title, links, etc.)
+- Type: `BaseLayoutProps` from fumadocs-ui
+
+## Development Commands
+
+```bash
+# Development
+pnpm preview              # Start dev server compatible with Cloudflare Workers
+
+# Build & Deploy
+pnpm build            # Build for production
+pnpm preview          # Preview on Cloudflare runtime locally
+pnpm deploy           # Deploy to Cloudflare
+
+# Linting
+pnpm lint             # Run ESLint
+
+# Cloudflare Types
+pnpm cf-typegen       # Generate Cloudflare environment types
+```
+
+## Common Tasks
+
+### Adding a New Documentation Page
+1. Create `content/docs/<page-name>.mdx`
+2. Add frontmatter with title and description
+3. Write content using MDX
+
+### Adding a New UI Component
+```bash
+pnpm dlx shadcn@latest add button
+```
+
+### Modifying Navigation
+Edit `src/app/layout.config.tsx` to customize nav options.
+
+### Adding API Routes
+- For Cloudflare compatibility, use Edge runtime or ensure Node.js APIs are available
+- Place routes in `src/app/api/`
+
+## Important Notes
+
+1. **Build Generation**: The `.source/` directory is auto-generated by fumadocs-mdx - don't edit files there directly.
+
+2. **Theme Support**: The project supports dark mode via fumadocs-ui's theme system with `suppressHydrationWarning`.
+
+3. **React 19**: This project uses React 19.1.2 - be aware of concurrent rendering patterns.
+
+4. **Next.js 15**: Using App Router exclusively, no Pages Router.
+
+5. **Package Manager**: Use `pnpm` for all package operations.
+
+## Fumadocs Version Compatibility
+
+Currently using fumadocs v15 which is compatible with v14 documentation patterns. Key imports:
+
+```typescript
+// Provider
+import { RootProvider } from "fumadocs-ui/provider";
+
+// Layouts
+import { DocsLayout } from "fumadocs-ui/layouts/docs";
+import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
+
+// Page components
+import { DocsPage, DocsBody, DocsTitle, DocsDescription } from "fumadocs-ui/page";
+
+// MDX components
+import defaultMdxComponents from "fumadocs-ui/mdx";
+
+// Source
+import { loader } from "fumadocs-core/source";
+```
+
+## Error Handling
+
+When encountering build errors:
+1. Check that `.source/` directory exists (run `pnpm preview` to generate)
+2. Verify MDX frontmatter syntax
+3. Ensure dynamic pages have `export const dynamic = "force-dynamic"` for Cloudflare
+4. Check fumadocs-mdx version compatibility with fumadocs-core and fumadocs-ui
