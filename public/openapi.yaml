@@ -1,0 +1,3733 @@
+openapi: 3.1.2
+info:
+  title: Lenco API
+  version: "1.0.0"
+  description: |
+    Lenco API v1 - OpenAPI specification covering Accounts, Banks, Resolve, Transactions,
+    Virtual Accounts, Bill Payments and Point of Sale operations. This spec is intended
+    to align with the endpoints documented at the Lenco API developer docs.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: https://api.lenco.co/access/v1
+    description: Lenco API v1 (production)
+  - url: https://sandbox.lenco.co/access/v1
+    description: Lenco API v1 (sandbox / test)
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: Detailed error message
+    ApiResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        message:
+          type: string
+      example:
+        status: true
+        message: "OK"
+    AccountDetail:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        bankAccount:
+          type: object
+          properties:
+            accountName:
+              type: string
+            accountNumber:
+              type: string
+            bank:
+              type: object
+              properties:
+                code:
+                  type: string
+                name:
+                  type: string
+        type:
+          type: string
+        status:
+          type: string
+          enum: [active, deleted]
+        availableBalance:
+          type: string
+        currentBalance:
+          type: string
+        currency:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      example:
+        id: "868c2b6f-167d-480b-9bba-c782c40e3d73"
+        name: "Primary Operating Account"
+        bankAccount:
+          accountName: "My Bakery Company"
+          accountNumber: "9900000006"
+          bank:
+            code: "101"
+            name: "Providus Bank"
+        type: "business"
+        status: "active"
+        availableBalance: "120000.50"
+        currentBalance: "125000.50"
+        currency: "NGN"
+        createdAt: "2024-01-01T12:00:00.000Z"
+    BalanceResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                availableBalance:
+                  type: string
+                currentBalance:
+                  type: string
+                currency:
+                  type: string
+    Bank:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        country:
+          type: string
+    Recipient:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        currency:
+          type: string
+        bankAccount:
+          type: object
+          properties:
+            accountName:
+              type: string
+            accountNumber:
+              type: string
+            bank:
+              type: object
+              properties:
+                code:
+                  type: string
+                name:
+                  type: string
+      example:
+        id: "recp-001"
+        name: "Supplier Ltd"
+        currency: "NGN"
+        bankAccount:
+          accountName: "Supplier Ltd"
+          accountNumber: "0123456789"
+          bank:
+            code: "101"
+            name: "Providus Bank"
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+        amount:
+          type: number
+        fee:
+          type: number
+          description: Transaction fee
+        currency:
+          type: string
+        type:
+          type: string
+          enum: [credit, debit]
+        status:
+          type: string
+          enum: [pending, successful, failed, declined]
+        narration:
+          type: string
+          description: Transaction narration/description
+        clientReference:
+          type: string
+          description: Client-supplied reference
+        transactionReference:
+          type: string
+          description: System-generated transaction reference
+        initiatedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        details:
+          type: object
+          description: Additional transaction details
+      example:
+        id: "3d7f6d4e-1234-4abc-8a0d-1ac2e3f4a5b6"
+        amount: 50000
+        fee: 50
+        currency: "NGN"
+        type: "debit"
+        status: "pending"
+        narration: "Payment to supplier"
+        clientReference: "client-ref-123456"
+        transactionReference: "txn-098765"
+        initiatedAt: "2024-01-20T10:00:00.000Z"
+        createdAt: "2024-01-20T10:00:00.000Z"
+    TransferRequest:
+      type: object
+      properties:
+        accountId:
+          type: string
+          description: Source account ID
+        recipientId:
+          type: string
+          description: Recipient ID (alternative to accountNumber + bankCode)
+        accountNumber:
+          type: string
+          description: Destination account number (10-digit NUBAN)
+        bankCode:
+          type: string
+          description: Destination bank code
+        amount:
+          type: number
+          description: Amount in NGN (positive number)
+        currency:
+          type: string
+          default: "NGN"
+        reference:
+          type: string
+          description: Unique client-supplied reference
+        narration:
+          type: string
+          description: Transaction narration/description
+        senderName:
+          type: string
+          description: Sender name (restricted field)
+      required:
+        - accountId
+        - amount
+        - reference
+    BulkTransferRequest:
+      type: object
+      properties:
+        transfers:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransferRequest'
+    VirtualAccount:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique ID for the virtual account
+        accountReference:
+          type: string
+          format: uuid
+          description: Unique reference for the virtual account
+        bankAccount:
+          type: object
+          properties:
+            accountName:
+              type: string
+            accountNumber:
+              type: string
+            bank:
+              type: object
+              properties:
+                code:
+                  type: string
+                name:
+                  type: string
+        type:
+          type: string
+          enum: ["Static Virtual Account", "Dynamic Virtual Account"]
+          description: Virtual account type
+        status:
+          type: string
+          enum: [active, expired, blacklisted]
+          description: Virtual account status
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+          description: Expiration date for dynamic virtual accounts
+        currency:
+          type: string
+        meta:
+          type: object
+          description: Additional metadata for the virtual account
+          properties:
+            isStatic:
+              type: boolean
+            bvn:
+              type:
+                - string
+                - 'null'
+            transactionReference:
+              type:
+                - string
+                - 'null'
+            amount:
+              type:
+                - string
+                - 'null'
+            minAmount:
+              type:
+                - string
+                - 'null'
+      example:
+        id: "5bb9faa9-9176-4f08-8768-fc146944de74"
+        accountReference: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        bankAccount:
+          accountName: "Zuri Ventures"
+          accountNumber: "0123456789"
+          bank:
+            code: "999"
+            name: "Providus Bank"
+        type: "Dynamic Virtual Account"
+        status: "active"
+        createdAt: "2024-01-01T12:00:00.000Z"
+        expiresAt: "2024-01-02T12:00:00.000Z"
+        currency: "NGN"
+        meta:
+          isStatic: false
+          bvn: null
+          transactionReference: "tx-ref-001"
+          amount: "1000"
+          minAmount: null
+    BillVendor:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillProduct'
+      example:
+        id: "vendor-001"
+        name: "MTN"
+        products:
+          - id: "product-123"
+            name: "MTN Airtime"
+            vendor:
+              id: "vendor-001"
+              name: "MTN"
+            amount:
+              type: "range"
+              fixed: null
+              minimum: "50"
+              maximum: "50000"
+            customerIdLabel: "Phone Number"
+            category: "airtime"
+            commissionPercentage: "2.5"
+    BillProduct:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        vendor:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+        amount:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [fixed, range]
+            fixed:
+              type:
+                - string
+                - 'null'
+            minimum:
+              type:
+                - string
+                - 'null'
+            maximum:
+              type:
+                - string
+                - 'null'
+        customerIdLabel:
+          type: string
+          description: Label describing what the customerId represents (e.g., "Phone Number", "Meter Number")
+        category:
+          type: string
+          enum: [airtime, mobile-data, cable-tv, electricity]
+        commissionPercentage:
+          type: string
+          description: Commission percentage earned on successful payment
+      example:
+        id: "product-123"
+        name: "MTN 1GB Data Bundle"
+        vendor:
+          id: "vendor-001"
+          name: "MTN"
+        amount:
+          type: "fixed"
+          fixed: "1000"
+          minimum: null
+          maximum: null
+        customerIdLabel: "Phone Number"
+        category: "mobile-data"
+        commissionPercentage: "2.5"
+    BillPaymentRequest:
+      type: object
+      properties:
+        productId:
+          type: string
+          description: Product ID for the bill payment
+        customerId:
+          type: string
+          description: Customer identifier (phone number, meter number, etc.)
+        debitAccountId:
+          type: string
+          description: Account ID to debit for the payment
+        amount:
+          type: number
+          description: Amount (required for some products)
+        reference:
+          type: string
+          description: Unique client-supplied reference
+      required:
+        - productId
+        - customerId
+        - debitAccountId
+      example:
+        productId: "product-123"
+        customerId: "08012345678"
+        debitAccountId: "868c2b6f-167d-480b-9bba-c782c40e3d73"
+        amount: 1000
+        reference: "bill-client-001"
+    POSDevice:
+      type: object
+      properties:
+        id:
+          type: string
+        serialNumber:
+          type: string
+          description: Terminal serial number
+        name:
+          type: string
+          description: Terminal name/label
+        address:
+          type:
+            - string
+            - 'null'
+          description: Terminal address
+        phone:
+          type:
+            - string
+            - 'null'
+          description: Contact phone number
+        model:
+          type:
+            - string
+            - 'null'
+          description: Terminal model (e.g., MP35P)
+        assignedAt:
+          type: string
+          format: date-time
+          description: When the terminal was assigned
+        settlementAccountId:
+          type:
+            - string
+            - 'null'
+          description: ID of the settlement account
+        accountDetails:
+          type:
+            - object
+            - 'null'
+          properties:
+            accountName:
+              type: string
+            accountNumber:
+              type: string
+            bankName:
+              type: string
+        status:
+          type: string
+          enum: [assigned, unassigned]
+          description: Terminal assignment status
+        unassignedAt:
+          type:
+            - string
+            - 'null'
+          format: date-time
+          description: When the terminal was unassigned
+        stats:
+          type: object
+          description: Terminal statistics (available when fetching by ID)
+          properties:
+            total:
+              type: object
+              properties:
+                value:
+                  type:
+                    - string
+                    - 'null'
+                count:
+                  type:
+                    - integer
+                    - 'null'
+            successful:
+              type: object
+              properties:
+                value:
+                  type:
+                    - string
+                    - 'null'
+                count:
+                  type:
+                    - integer
+                    - 'null'
+      example:
+        id: "5bb9faa9-9176-4f08-8768-fc146944de74"
+        serialNumber: "P260300146913"
+        name: "Lenco Bakeries"
+        address: null
+        phone: null
+        model: "MP35P"
+        assignedAt: "2024-01-01T12:10:01.000Z"
+        settlementAccountId: "868c2b6f-167d-480b-9bba-c782c40e3d73"
+        accountDetails:
+          accountName: "Lenco Bakeries"
+          accountNumber: "9900000006"
+          bankName: "Providus Bank"
+        status: "assigned"
+        unassignedAt: null
+    POSPayment:
+      type: object
+      properties:
+        id:
+          type: string
+        reference:
+          type: string
+        amount:
+          type: string
+        stampDuty:
+          type:
+            - string
+            - 'null'
+        fee:
+          type:
+            - string
+            - 'null'
+        settlementAmount:
+          type:
+            - string
+            - 'null'
+        type:
+          type: string
+          enum: [card-payment, transfer]
+          description: Transaction type
+        status:
+          type: string
+          enum: [successful, failed]
+        datetime:
+          type: string
+          format: date-time
+        message:
+          type: string
+          description: Transaction message/description
+        cardPayment:
+          type:
+            - object
+            - 'null'
+          description: Card payment details (only for card-payment type)
+          properties:
+            pan:
+              type: string
+            stan:
+              type: string
+            rrn:
+              type: string
+            responseCode:
+              type:
+                - string
+                - 'null'
+            responseMessage:
+              type:
+                - string
+                - 'null'
+        transfer:
+          type:
+            - object
+            - 'null'
+          description: Transfer details (only for transfer type)
+          properties:
+            sender:
+              type:
+                - string
+                - 'null'
+            description:
+              type: string
+            sessionId:
+              type:
+                - string
+                - 'null'
+        terminal:
+          $ref: '#/components/schemas/POSDevice'
+        settlementStatus:
+          type:
+            - string
+            - 'null'
+          enum: [pending, successful, failed]
+          description: Settlement status
+      example:
+        id: "pos-tx-001"
+        reference: "pos-ref-123"
+        amount: "5000"
+        stampDuty: "50"
+        fee: "25"
+        settlementAmount: "4925"
+        type: "card-payment"
+        status: "successful"
+        datetime: "2024-01-20T10:00:00.000Z"
+        message: "Transaction successful"
+        cardPayment:
+          pan: "5399****1234"
+          stan: "123456"
+          rrn: "789012345678"
+          responseCode: "00"
+          responseMessage: "Approved"
+        settlementStatus: "successful"
+    AccountsListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/AccountDetail'
+      example:
+        status: true
+        message: "OK"
+        data:
+          - id: "868c2b6f-167d-480b-9bba-c782c40e3d73"
+            name: "Primary Operating Account"
+            bankAccount:
+              accountName: "Lenco Bakeries"
+              accountNumber: "9900000006"
+              bank:
+                code: "101"
+                name: "Providus Bank"
+            type: "business"
+            status: "active"
+            availableBalance: "120000.50"
+            currency: "NGN"
+    AccountResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/AccountDetail'
+    TransactionsListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                transactions:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Transaction'
+      # example removed (was misplaced bulk transfer example)
+                meta:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                    pageCount:
+                      type: integer
+                    perPage:
+                      type: integer
+                    currentPage:
+                      type: integer
+      example:
+        status: true
+        message: "OK"
+        data:
+          transactions:
+            - id: "3d7f6d4e-1234-4abc-8a0d-1ac2e3f4a5b6"
+              amount: 50000
+              currency: "NGN"
+              type: "debit"
+              status: "successful"
+              reference: "client-ref-123456"
+          meta:
+            total: 1
+            pageCount: 1
+            perPage: 25
+            currentPage: 1
+    RecipientsListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                recipients:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Recipient'
+                meta:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                    pageCount:
+                      type: integer
+                    perPage:
+                      type: integer
+                    currentPage:
+                      type: integer
+      example:
+        status: true
+        message: "OK"
+        data:
+          recipients:
+            - id: "recp-001"
+              name: "Supplier Ltd"
+              currency: "NGN"
+              bankAccount:
+                accountName: "Supplier Ltd"
+                accountNumber: "0123456789"
+                bank:
+                  code: "101"
+                  name: "Providus Bank"
+          meta:
+            total: 1
+            pageCount: 1
+            perPage: 25
+            currentPage: 1
+    RecipientResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Recipient'
+    TransactionResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/Transaction'
+    TransferCreateResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                request:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                      enum: [queued, created]
+                transaction:
+                  $ref: '#/components/schemas/Transaction'
+      example:
+        status: true
+        message: "Transfer queued"
+        data:
+          request:
+            status: "queued"
+          transaction:
+            id: "3d7f6d4e-1234-4abc-8a0d-1ac2e3f4a5b6"
+            amount: 25000
+            currency: "NGN"
+            status: "pending"
+            reference: "client-transfer-98765"
+    BulkTransferResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                id:
+                  type: string
+                reference:
+                  type: string
+                stats:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                    successful:
+                      type: integer
+                    failed:
+                      type: integer
+                    pending:
+                      type: integer
+                transactions:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Transaction'
+      example:
+        status: true
+        message: "Bulk transfer accepted"
+        data:
+          id: "batch-20240101-0001"
+          reference: "batch-ref-001"
+          stats:
+            total: 2
+            successful: 0
+            failed: 0
+            pending: 2
+          transactions:
+            - id: "tx-001"
+              amount: 10000
+              currency: "NGN"
+              status: "pending"
+              reference: "bulk-client-1"
+            - id: "tx-002"
+              amount: 15000
+              currency: "NGN"
+              status: "pending"
+              reference: "bulk-client-2"
+    VirtualAccountsListResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                virtualAccounts:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/VirtualAccount'
+                meta:
+                  type: object
+                  properties:
+                    total:
+                      type: integer
+                    pageCount:
+                      type: integer
+                    perPage:
+                      type: integer
+                    currentPage:
+                      type: integer
+      example:
+        status: true
+        message: "OK"
+        data:
+          virtualAccounts:
+            - id: "5bb9faa9-9176-4f08-8768-fc146944de74"
+              accountReference: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+              bankAccount:
+                accountName: "Zuri Ventures"
+                accountNumber: "0123456789"
+                bank:
+                  code: "999"
+                  name: "Providus Bank"
+              type: "Dynamic Virtual Account"
+              status: "active"
+              currency: "NGN"
+          meta:
+            total: 1
+            pageCount: 1
+            perPage: 25
+            currentPage: 1
+    VirtualAccountResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/VirtualAccount'
+    BillsVendorsResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                vendors:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/BillVendor'
+    BillsProductsResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                products:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/BillProduct'
+    BillPaymentResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                id:
+                  type: string
+                amount:
+                  type: string
+                vendor:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    name:
+                      type: string
+                category:
+                  type: string
+                  enum: [airtime, mobile-data, cable-tv, electricity]
+                product:
+                  $ref: '#/components/schemas/BillProduct'
+                details:
+                  type: object
+                  properties:
+                    customerId:
+                      type: string
+                    customerName:
+                      type: string
+                debitAccountId:
+                  type: string
+                instructions:
+                  type:
+                    - string
+                    - 'null'
+                initiatedAt:
+                  type: string
+                  format: date-time
+                status:
+                  type: string
+                  enum: [pending, successful, failed]
+                completedAt:
+                  type:
+                    - string
+                    - 'null'
+                  format: date-time
+                failedAt:
+                  type:
+                    - string
+                    - 'null'
+                  format: date-time
+                reasonForFailure:
+                  type:
+                    - string
+                    - 'null'
+                clientReference:
+                  type:
+                    - string
+                    - 'null'
+                transactionReference:
+                  type: string
+                commission:
+                  type:
+                    - string
+                    - 'null'
+      example:
+        status: true
+        message: "OK"
+        data:
+          id: "bill-001"
+          amount: "1000"
+          vendor:
+            id: "vendor-001"
+            name: "MTN"
+          category: "airtime"
+          product:
+            id: "product-123"
+            name: "MTN Airtime"
+          details:
+            customerId: "08012345678"
+            customerName: "John Doe"
+          debitAccountId: "868c2b6f-167d-480b-9bba-c782c40e3d73"
+          instructions: null
+          initiatedAt: "2024-01-20T10:00:00.000Z"
+          status: "successful"
+          completedAt: "2024-01-20T10:00:05.000Z"
+          failedAt: null
+          reasonForFailure: null
+          clientReference: "bill-client-001"
+          transactionReference: "txn-bill-001"
+          commission: "20"
+    POSDevicesResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                terminals:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/POSDevice'
+      example:
+        status: true
+        message: "OK"
+        data:
+          terminals:
+            - id: "term-001"
+              serialNumber: "P260300146913"
+              name: "Main Counter Terminal"
+              assignedTo: "Lenco Bakeries"
+    POSTransactionsResponse:
+      allOf:
+        - $ref: '#/components/schemas/ApiResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                transactions:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/POSPayment'
+      example:
+        status: true
+        message: "OK"
+        data:
+          transactions:
+            - id: "pos-tx-001"
+              reference: "pos-ref-123"
+              amount: "5000"
+              currency: "NGN"
+              status: "successful"
+      
+security:
+  - BearerAuth: []
+tags:
+  - name: Accounts
+    description: Account listing, retrieval and balances
+  - name: Recipients
+    description: Manage saved transfer recipients
+  - name: Banks
+    description: Bank directory and lookup
+  - name: Resolve
+    description: Account resolution endpoints
+  - name: Transactions
+    description: Wallet payments, transfers and transaction lookup
+  - name: Virtual Accounts
+    description: Create and manage virtual accounts and look up transactions
+  - name: Bill Payment
+    description: Bill vendors, products and bill payment operations
+  - name: Point of Sale
+    description: POS terminal management and POS transactions
+paths:
+  /accounts:
+    get:
+      operationId: getAccounts
+      tags: [Accounts]
+      summary: Get list of accounts
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: A list of accounts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountsListResponse'
+              examples:
+                accountsListExample:
+                  summary: Example accounts list
+                  value:
+                    status: true
+                    message: "OK"
+                    data:
+                      - id: "868c2b6f-167d-480b-9bba-c782c40e3d73"
+                        name: "Primary Operating Account"
+                        bankAccount:
+                          accountName: "My Bakery Company"
+                          accountNumber: "9900000006"
+                          bank:
+                            code: "101"
+                            name: "Providus Bank"
+                        type: "business"
+                        status: "active"
+                        availableBalance: "120000.50"
+                        currentBalance: "125000.50"
+                        currency: "NGN"
+                        createdAt: "2024-01-01T12:00:00.000Z"
+        
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /account/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getAccountById
+      tags: [Accounts]
+      summary: Get account by ID
+      responses:
+        '200':
+          description: Account details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /account/{id}/balance:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getAccountBalance
+      tags: [Accounts]
+      summary: Get account balance
+      responses:
+        '200':
+          description: Balance for account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+              examples:
+                example:
+                  summary: Account balance sample
+                  value:
+                    status: true
+                    message: "OK"
+                    data:
+                      availableBalance: "120000.50"
+                      currentBalance: "125000.50"
+                      currency: "NGN"
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /banks:
+    get:
+      operationId: getBanks
+      tags: [Banks]
+      summary: Get list of banks
+      parameters:
+        - name: country
+          in: query
+          schema:
+            type: string
+          description: Optional country code to filter banks
+      responses:
+        '200':
+          description: List of banks
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Bank'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /resolve:
+    get:
+      operationId: resolveAccount
+      tags: [Resolve]
+      summary: Resolve bank account details
+      parameters:
+        - name: accountNumber
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: bankCode
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resolved account information
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          accountName:
+                            type: string
+                          accountNumber:
+                            type: string
+                          bank:
+                            type: object
+                            properties:
+                              code:
+                                type: string
+                              name:
+                                type: string
+              examples:
+                resolveExample:
+                  summary: account resolution example
+                  value:
+                    status: true
+                    message: "OK"
+                    data:
+                      accountName: "John Doe"
+                      accountNumber: "0123456789"
+                      bank:
+                        code: "999"
+                        name: "Example Bank"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /recipients:
+    get:
+      operationId: listRecipients
+      tags: [Recipients]
+      summary: Get list of recipients
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: A list of recipients
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipientsListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      operationId: createRecipient
+      tags: [Recipients]
+      summary: Create a new recipient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                accountNumber:
+                  type: string
+                bankCode:
+                  type: string
+                name:
+                  type: string
+                currency:
+                  type: string
+            examples:
+              createRecipient:
+                summary: Create recipient
+                value:
+                  accountNumber: "0123456789"
+                  bankCode: "023"
+                  name: "Supplier Ltd"
+                  currency: "NGN"
+      responses:
+        '201':
+          description: Recipient created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipientResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /recipient/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getRecipientById
+      tags: [Recipients]
+      summary: Get recipient by ID
+      responses:
+        '200':
+          description: Recipient details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipientResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /transactions:
+    get:
+      operationId: listTransactions
+      tags: [Transactions]
+      summary: List transactions
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, successful, failed, declined]
+          description: Filter by transaction status
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [credit, debit]
+          description: Filter by transaction type
+        - name: start
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Start date for filtering (ISO8601)
+        - name: end
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: End date for filtering (ISO8601)
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search term for transactions
+        - name: accountIds
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by account IDs
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: |
+            curl --request POST \
+              --url https://api.lenco.co/access/v1/transactions \
+              --header 'Authorization: Bearer $API_KEY' \
+              --header 'Content-Type: application/json' \
+              --data '{"accountId":"868c2b6f-167d-480b-9bba-c782c40e3d73","recipientId":"recp-001","amount":25000,"currency":"NGN","reference":"client-ref-123456","narration":"Supplier payment"}'
+        - lang: Node
+          label: Node (fetch)
+          source: |
+            import fetch from 'node-fetch';
+            const res = await fetch('https://api.lenco.co/access/v1/transactions', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${process.env.API_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ accountId: '868c2b6f-167d-480b-9bba-c782c40e3d73', recipientId: 'recp-001', amount: 25000, currency: 'NGN', reference: 'client-ref-123456', narration: 'Supplier payment' })
+            });
+            console.log(await res.json());
+        - lang: Python
+          label: Python (requests)
+          source: |
+            import os, requests
+            API_KEY = os.getenv('API_KEY')
+            url = 'https://api.lenco.co/access/v1/transactions'
+            payload = { 'accountId': '868c2b6f-167d-480b-9bba-c782c40e3d73', 'recipientId': 'recp-001', 'amount': 25000, 'currency': 'NGN', 'reference': 'client-ref-123456', 'narration': 'Supplier payment' }
+            r = requests.post(url, json=payload, headers={'Authorization': f'Bearer {API_KEY}'})
+            print(r.json())
+
+      responses:
+        '200':
+          description: A paginated list of transactions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionsListResponse'
+              examples:
+                transactionsListExample:
+                  summary: Recent transactions (example)
+                  value:
+                    status: true
+                    message: "OK"
+                    data:
+                      transactions:
+                        - id: "3d7f6d4e-1234-4abc-8a0d-1ac2e3f4a5b6"
+                          amount: 50000
+                          fee: 50
+                          currency: "NGN"
+                          type: "debit"
+                          status: "successful"
+                          narration: "Payment to supplier"
+                          clientReference: "client-ref-123456"
+                          transactionReference: "txn-098765"
+                      meta:
+                        total: 1
+                        pageCount: 1
+                        perPage: 25
+                        currentPage: 1
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      operationId: createTransaction
+      tags: [Transactions]
+      summary: Create a transaction (e.g., receive / charge)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                currency:
+                  type: string
+                type:
+                  type: string
+                accountId:
+                  type: string
+                recipientId:
+                  type: string
+                accountNumber:
+                  type: string
+                bankCode:
+                  type: string
+                reference:
+                  type: string
+                narration:
+                  type: string
+                senderName:
+                  type: string
+            examples:
+              createTransaction:
+                summary: Create a bank transfer transaction
+                value:
+                  accountId: "868c2b6f-167d-480b-9bba-c782c40e3d73"
+                  recipientId: "recp-001"
+                  amount: 25000
+                  currency: "NGN"
+                  reference: "client-ref-123456"
+                  narration: "Supplier payment Invoice #548"
+      responses:
+        '201':
+          description: Transaction created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+              examples:
+                transactionCreated:
+                  summary: Transaction created
+                  value:
+                    status: true
+                    message: "Transaction created"
+                    data:
+                      id: "trx-20250101-0001"
+                      amount: 50000
+                      currency: "NGN"
+                      type: "credit"
+                      status: "pending"
+                      reference: "client-ref-123456"
+                      description: "Customer payment for invoice #430"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /transaction/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getTransactionById
+      tags: [Transactions]
+      summary: Get transaction by ID
+      responses:
+        '200':
+          description: Transaction information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+              examples:
+                transactionByIdExample:
+                  summary: Transaction details (example)
+                  value:
+                    status: true
+                    message: "OK"
+                    data:
+                      id: "3d7f6d4e-1234-4abc-8a0d-1ac2e3f4a5b6"
+                      amount: 50000
+                      fee: 50
+                      narration: "Payment to supplier"
+                      type: "debit"
+                      status: "successful"
+                      initiatedAt: "2024-01-20T09:00:00.000Z"
+                      completedAt: "2024-01-20T09:00:05.000Z"
+                      clientReference: "client-ref-123456"
+                      transactionReference: "txn-098765"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /transaction-by-reference/{reference}:
+    parameters:
+      - name: reference
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getTransactionByReference
+      tags: [Transactions]
+      summary: Get transaction by reference
+      responses:
+        '200':
+          description: Transaction lookup by reference
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+              examples:
+                byReferenceExample:
+                  summary: transaction-by-reference example
+                  value:
+                    status: true
+                    message: "OK"
+                    data:
+                      id: "3d7f6d4e-1234-4abc-8a0d-1ac2e3f4a5b6"
+                      amount: 50000
+                      status: "successful"
+                      clientReference: "client-ref-123456"
+                      transactionReference: "txn-098765"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /transfer:
+    post:
+      operationId: createTransfer
+      tags: [Transactions]
+      summary: Create single transfer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+            examples:
+              singleTransfer:
+                summary: Transfer from operating account to supplier
+                value:
+                  accountId: "868c2b6f-167d-480b-9bba-c782c40e3d73"
+                  accountNumber: "0123456780"
+                  bankCode: "023"
+                  amount: 25000
+                  currency: "NGN"
+                  reference: "client-transfer-98765"
+                  narration: "Supplier payment Invoice #548"
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: |
+            curl --request POST \
+              --url https://api.lenco.co/access/v1/transfer \
+              --header 'Authorization: Bearer $API_KEY' \
+              --header 'Content-Type: application/json' \
+              --data '{"accountId":"868c2b6f-167d-480b-9bba-c782c40e3d73","accountNumber":"0123456780","bankCode":"023","amount":25000,"currency":"NGN","reference":"client-transfer-98765","narration":"Supplier payment"}'
+        - lang: Node
+          label: Node (fetch)
+          source: |
+            import fetch from 'node-fetch';
+            const res = await fetch('https://api.lenco.co/access/v1/transfer', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${process.env.API_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ accountId: '868c2b6f-167d-480b-9bba-c782c40e3d73', accountNumber: '0123456780', bankCode: '023', amount: 25000, currency: 'NGN', reference: 'client-transfer-98765', narration: 'Supplier payment' })
+            });
+            console.log(await res.json());
+        - lang: Python
+          label: Python (requests)
+          source: |
+            import os, requests
+            API_KEY = os.getenv('API_KEY')
+            url = 'https://api.lenco.co/access/v1/transfer'
+            payload = { 'accountId': '868c2b6f-167d-480b-9bba-c782c40e3d73', 'accountNumber': '0123456780', 'bankCode': '023', 'amount': 25000, 'currency': 'NGN', 'reference': 'client-transfer-98765', 'narration': 'Supplier payment' }
+            r = requests.post(url, json=payload, headers={'Authorization': f'Bearer {API_KEY}'})
+            print(r.json())
+
+      responses:
+        '201':
+          description: Transfer created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferCreateResponse'
+              examples:
+                singleTransferResponse:
+                  summary: Example transfer request (queued)
+                  value:
+                    status: true
+                    message: "Transfer queued"
+                    data:
+                      request:
+                        status: "queued"
+                      transaction:
+                        id: "3d7f6d4e-1234-created"
+                        amount: 25000
+                        currency: "NGN"
+                        status: "pending"
+                        reference: "client-transfer-98765"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /transfer/by-reference/{reference}:
+    parameters:
+      - name: reference
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getTransferByReference
+      tags: [Transactions]
+      summary: Get transfer by reference
+      responses:
+        '200':
+          description: Transfer details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /transfer/bulk:
+    post:
+      operationId: createBulkTransfers
+      tags: [Transactions]
+      summary: Create bulk transfer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkTransferRequest'
+            examples:
+              bulkTransferExample:
+                summary: Multiple transfers in one batch (each transfer follows TransferRequest shape)
+                value:
+                  transfers:
+                    - accountId: "acct-1"
+                      accountNumber: "0123456780"
+                      bankCode: "023"
+                      amount: 10000
+                      currency: "NGN"
+                      reference: "bulk-client-1"
+                      narration: "Payout batch"
+                    - accountId: "acct-1"
+                      accountNumber: "0123456781"
+                      bankCode: "023"
+                      amount: 15000
+                      currency: "NGN"
+                      reference: "bulk-client-2"
+                      narration: "Payout batch"
+      responses:
+        '201':
+          description: Bulk transfers queued/created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkTransferResponse'
+              examples:
+                bulkTransferAccepted:
+                  summary: Example bulk transfer response
+                  value:
+                    status: true
+                    message: "Bulk transfer accepted"
+                    data:
+                      id: "batch-20240101-0001"
+                      reference: "batch-ref-001"
+                      stats:
+                        total: 2
+                        successful: 0
+                        failed: 0
+                        pending: 2
+                      transactions:
+                        - id: "tx-001"
+                          amount: 10000
+                          currency: "NGN"
+                          status: "pending"
+                          reference: "bulk-client-1"
+                        - id: "tx-002"
+                          amount: 15000
+                          currency: "NGN"
+                          status: "pending"
+                          reference: "bulk-client-2"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /transfer/bulk/by-reference/{reference}:
+    parameters:
+      - name: reference
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getBulkTransferByReference
+      tags: [Transactions]
+      summary: Get bulk transfer details by batch reference
+      responses:
+        '200':
+          description: Bulk transfer batch status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkTransferResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /virtual-accounts:
+    post:
+      operationId: createVirtualAccount
+      tags: [Virtual Accounts]
+      summary: Create virtual account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isStatic:
+                  type: boolean
+                  default: false
+                  description: Create a static virtual account (true) or dynamic (false)
+                createNewAccount:
+                  type: boolean
+                  default: false
+                  description: For static accounts - create a new underlying account if true
+                bvn:
+                  type: string
+                  description: BVN (required for static accounts)
+                transactionReference:
+                  type: string
+                  description: Client-supplied reference for transactions to this account
+                amount:
+                  type: number
+                  description: Exact amount expected for dynamic account (only one of amount or minAmount)
+                minAmount:
+                  type: number
+                  description: Minimum expected amount for dynamic account
+                accountName:
+                  type: string
+                  description: Optional name for the created account (shown when account is resolved)
+            
+            examples:
+              createVirtualAccount:
+                summary: Create a new virtual account for a customer (dynamic)
+                value:
+                  isStatic: false
+                  transactionReference: "tx-ref-20250115-0001"
+                  amount: 1000
+                  currency: "NGN"
+                  accountName: "Zuri Ventures"
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: |
+            curl --request POST \
+              --url https://api.lenco.co/access/v1/virtual-accounts \
+              --header 'Authorization: Bearer $API_KEY' \
+              --header 'Content-Type: application/json' \
+              --data '{"isStatic":false,"transactionReference":"tx-ref-20250115-0001","amount":1000,"currency":"NGN","accountName":"Zuri Ventures"}'
+        - lang: Node
+          label: Node (fetch)
+          source: |
+            import fetch from 'node-fetch';
+            const res = await fetch('https://api.lenco.co/access/v1/virtual-accounts', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${process.env.API_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ isStatic: false, transactionReference: 'tx-ref-20250115-0001', amount: 1000, currency: 'NGN', accountName: 'Zuri Ventures' })
+            });
+            console.log(await res.json());
+        - lang: Python
+          label: Python (requests)
+          source: |
+            import os, requests
+            API_KEY = os.getenv('API_KEY')
+            url = 'https://api.lenco.co/access/v1/virtual-accounts'
+            payload = { 'isStatic': False, 'transactionReference': 'tx-ref-20250115-0001', 'amount': 1000, 'currency': 'NGN', 'accountName': 'Zuri Ventures' }
+            r = requests.post(url, json=payload, headers={'Authorization': f'Bearer {API_KEY}'})
+            print(r.json())
+
+      responses:
+        '201':
+          description: Virtual account created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirtualAccountResponse'
+              examples:
+                virtualAccountExample:
+                  summary: New virtual account
+                  value:
+                    status: true
+                    message: "OK"
+                    data:
+                      account_reference: "va-20250115-0002"
+                      account_number: "0123456789"
+                      bank_code: "499"
+                      currency: "NGN"
+                      status: "active"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /virtual-accounts/static:
+    get:
+      operationId: listStaticVirtualAccounts
+      tags: [Virtual Accounts]
+      summary: Get list of static virtual accounts
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirtualAccountsListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /virtual-accounts/transactions:
+    get:
+      operationId: listVirtualAccountsTransactions
+      tags: [Virtual Accounts]
+      summary: Get successful virtual account transactions
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: start
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Earliest date to filter for. Format YYYY-MM-DD
+        - name: end
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Latest date to filter for. Format YYYY-MM-DD
+        - name: accountReference
+          in: query
+          schema:
+            type: string
+          description: Filter by virtual account reference
+        - name: transactionReference
+          in: query
+          schema:
+            type: string
+          description: Filter by the transactionReference passed when creating the account
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionsListResponse'
+              examples:
+                virtualTxListExample:
+                  summary: Virtual account transactions (example)
+                  value:
+                    status: true
+                    message: "OK"
+                    data:
+                      transactions:
+                        - id: "vtx-0001"
+                          amount: 1000
+                          fee: 10
+                          currency: "NGN"
+                          type: "credit"
+                          status: "successful"
+                          narration: "Payment to virtual account"
+                      meta:
+                        total: 1
+                        pageCount: 1
+                        perPage: 25
+                        currentPage: 1
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /virtual-accounts/all-transactions:
+    get:
+      operationId: listAllVirtualAccountTransactions
+      tags: [Virtual Accounts]
+      summary: Get all successful and rejected virtual account transactions
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: start
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Earliest date to filter for. Format YYYY-MM-DD
+        - name: end
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Latest date to filter for. Format YYYY-MM-DD
+        - name: accountReference
+          in: query
+          schema:
+            type: string
+          description: Filter by virtual account reference
+        - name: transactionReference
+          in: query
+          schema:
+            type: string
+          description: Filter by the transactionReference passed when creating the account
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionsListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /virtual-accounts/rejected-transactions:
+    get:
+      operationId: listAllRejectedVirtualAccountTransactions
+      tags: [Virtual Accounts]
+      summary: List all rejected virtual account transactions
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: start
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Earliest date to filter for. Format YYYY-MM-DD
+        - name: end
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Latest date to filter for. Format YYYY-MM-DD
+        - name: accountReference
+          in: query
+          schema:
+            type: string
+          description: Filter by virtual account reference
+        - name: transactionReference
+          in: query
+          schema:
+            type: string
+          description: Filter by the transactionReference passed when creating the account
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionsListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /virtual-accounts/transactions/rejected/{transactionId}:
+    parameters:
+      - name: transactionId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getRejectedVirtualAccountTransactionByIdGlobal
+      tags: [Virtual Accounts]
+      summary: Get a rejected virtual account transaction by ID
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /virtual-accounts/{accountReference}:
+    parameters:
+      - name: accountReference
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getVirtualAccountByAccountReference
+      tags: [Virtual Accounts]
+      summary: Get virtual account by account reference
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirtualAccountResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /virtual-account-by-bvn/{bvn}:
+    parameters:
+      - name: bvn
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getVirtualAccountByBvn
+      tags: [Virtual Accounts]
+      summary: Get static virtual account by BVN
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirtualAccountResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /virtual-accounts/lookup/by-reference/{accountReference}:
+    parameters:
+      - name: accountReference
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Virtual Accounts]
+      summary: Get virtual account by account reference
+      operationId: getVirtualAccountByReference
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirtualAccountResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /virtual-accounts/static/bvn/{bvn}:
+    get:
+      operationId: getStaticVirtualAccountByBvn
+      tags: [Virtual Accounts]
+      summary: Get static virtual account by BVN
+      parameters:
+        - name: bvn
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirtualAccountResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /virtual-accounts/{accountReference}/transactions:
+    parameters:
+      - name: accountReference
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: listVirtualAccountTransactions
+      tags: [Virtual Accounts]
+      summary: Get transactions for a virtual account
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionsListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /virtual-accounts/{accountReference}/transactions/{transactionId}:
+    parameters:
+      - name: accountReference
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: transactionId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Virtual Accounts]
+      summary: Get a virtual account transaction by ID
+      operationId: getVirtualAccountTransactionById
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /virtual-accounts/{accountReference}/transactions/rejected:
+    parameters:
+      - name: accountReference
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: listRejectedVirtualAccountTransactions
+      tags: [Virtual Accounts]
+      summary: Get rejected virtual account transactions
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionsListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /virtual-accounts/{accountReference}/transactions/rejected/{transactionId}:
+    parameters:
+      - name: accountReference
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: transactionId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getRejectedVirtualAccountTransactionById
+      tags: [Virtual Accounts]
+      summary: Get rejected virtual account transaction by ID
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills/vendors:
+    get:
+      operationId: listBillVendors
+      tags: [Bill Payment]
+      summary: Get bill vendors
+      parameters:
+        - name: categories
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [airtime, mobile-data, cable-tv, electricity]
+          description: Filter vendors by categories
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillsVendorsResponse'
+              examples:
+                vendorsExample:
+                  summary: Vendors list (example)
+                  value:
+                    status: true
+                    message: "OK"
+                    data:
+                      vendors:
+                        - id: "vendor-001"
+                          name: "Airtime Co"
+                          products: []
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills/vendors/by-category/{category}:
+    parameters:
+      - name: category
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [airtime, mobile-data, cable-tv, electricity]
+    get:
+      operationId: listBillVendorsByCategory
+      tags: [Bill Payment]
+      summary: Get bill vendors by category
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillsVendorsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills/vendors/{vendorId}:
+    parameters:
+      - name: vendorId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getBillVendorById
+      tags: [Bill Payment]
+      summary: Get bill vendor by ID
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/BillVendor'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills/products:
+    get:
+      operationId: listBillProducts
+      tags: [Bill Payment]
+      summary: Get bill products
+      parameters:
+        - name: categories
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [airtime, mobile-data, cable-tv, electricity]
+          description: Filter products by categories
+        - name: vendorIds
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter products by vendor IDs
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillsProductsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills/products/by-category/{category}:
+    parameters:
+      - name: category
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [airtime, mobile-data, cable-tv, electricity]
+    get:
+      operationId: listBillProductsByCategory
+      tags: [Bill Payment]
+      summary: Get bill products by category
+      parameters:
+        - name: vendorIds
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by vendor IDs
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillsProductsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills/products/by-vendor/{vendorId}:
+    parameters:
+      - name: vendorId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: listBillProductsByVendor
+      tags: [Bill Payment]
+      summary: Get bill products by vendor
+      parameters:
+        - name: categories
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [airtime, mobile-data, cable-tv, electricity]
+          description: Filter by categories
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillsProductsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills/products/{productId}:
+    get:
+      operationId: getBillProductById
+      tags: [Bill Payment]
+      summary: Get bill product by ID
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/BillProduct'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills/lookup-account:
+    get:
+      operationId: lookupBillAccount
+      tags: [Bill Payment]
+      summary: Lookup bill account (e.g., prefill beneficiary for a product)
+      parameters:
+        - name: productId
+          in: query
+          schema:
+            type: string
+          description: Product ID to lookup
+        - name: vendorId
+          in: query
+          schema:
+            type: string
+          description: Vendor ID (alternative to productId)
+        - name: customerId
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Customer identifier (phone number, meter number, etc.)
+      responses:
+        '200':
+          description: Account lookup details
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          customerId:
+                            type: string
+                          customerName:
+                            type: string
+              examples:
+                lookupExample:
+                  summary: Customer lookup response
+                  value:
+                    status: true
+                    message: "OK"
+                    data:
+                      customerId: "08012345678"
+                      customerName: "John Doe"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills:
+    post:
+      operationId: createBill
+      tags: [Bill Payment]
+      summary: Create a bill payment
+      description: Create a bill payment (debitAccountId must be funded)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BillPaymentRequest'
+            examples:
+              billPaymentExample:
+                summary: Pay a product for a customer
+                value:
+                  productId: "product-123"
+                  customerId: "08012345678"
+                  debitAccountId: "868c2b6f-167d-480b-9bba-c782c40e3d73"
+                  amount: 1000
+                  reference: "bill-client-001"
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: |
+            curl --request POST \
+              --url https://api.lenco.co/access/v1/bills \
+              --header 'Authorization: Bearer $API_KEY' \
+              --header 'Content-Type: application/json' \
+              --data '{"productId":"product-123","customerId":"08012345678","debitAccountId":"868c2b6f-167d-480b-9bba-c782c40e3d73","amount":1000,"reference":"bill-client-001"}'
+        - lang: Node
+          label: Node (fetch)
+          source: |
+            import fetch from 'node-fetch';
+            const res = await fetch('https://api.lenco.co/access/v1/bills', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${process.env.API_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ productId: 'product-123', customerId: '08012345678', debitAccountId: '868c2b6f-167d-480b-9bba-c782c40e3d73', amount: 1000, reference: 'bill-client-001' })
+            });
+            console.log(await res.json());
+        - lang: Python
+          label: Python (requests)
+          source: |
+            import os, requests
+            API_KEY = os.getenv('API_KEY')
+            url = 'https://api.lenco.co/access/v1/bills'
+            payload = { 'productId': 'product-123', 'customerId': '08012345678', 'debitAccountId': '868c2b6f-167d-480b-9bba-c782c40e3d73', 'amount': 1000, 'reference': 'bill-client-001' }
+            r = requests.post(url, json=payload, headers={'Authorization': f'Bearer {API_KEY}'})
+            print(r.json())
+      responses:
+        '201':
+          description: Bill payment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillPaymentResponse'
+              examples:
+                billPaymentExampleResponse:
+                  summary: Example created bill payment
+                  value:
+                    status: true
+                    message: "OK"
+                    data:
+                      id: "bill-001"
+                      amount: "1000"
+                      status: "pending"
+                      transactionReference: "txn-bill-001"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      operationId: listBills
+      tags: [Bill Payment]
+      summary: List bill payments
+      description: List bill payments with filtering
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, successful, failed]
+          description: Filter by payment status
+        - name: customerId
+          in: query
+          schema:
+            type: string
+          description: Filter by customer ID
+        - name: productId
+          in: query
+          schema:
+            type: string
+          description: Filter by product ID
+        - name: vendorIds
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by vendor IDs
+        - name: categories
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [airtime, mobile-data, cable-tv, electricity]
+          description: Filter by categories
+        - name: start
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Start date for filtering (ISO8601)
+        - name: end
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: End date for filtering (ISO8601)
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          billPayments:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                          meta:
+                            type: object
+                            properties:
+                              total:
+                                type: integer
+                              pageCount:
+                                type: integer
+                              perPage:
+                                type: integer
+                              currentPage:
+                                type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getBillById
+      tags: [Bill Payment]
+      summary: Get bill payment by ID
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillPaymentResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills/by-reference/{reference}:
+    parameters:
+      - name: reference
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getBillByReference
+      tags: [Bill Payment]
+      summary: Get bill payment by reference
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillPaymentResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills/payments:
+    post:
+      operationId: createBillPayment
+      tags: [Bill Payment]
+      summary: Create a bill payment (alias)
+      description: Alias for POST /bills - Create a bill payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BillPaymentRequest'
+            examples:
+              billPaymentExample:
+                summary: Pay a product for a customer
+                value:
+                  productId: "product-123"
+                  customerId: "08012345678"
+                  debitAccountId: "868c2b6f-167d-480b-9bba-c782c40e3d73"
+                  amount: 1000
+                  reference: "bill-client-001"
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: |
+            curl --request POST \
+              --url https://api.lenco.co/access/v1/bills/payments \
+              --header 'Authorization: Bearer $API_KEY' \
+              --header 'Content-Type: application/json' \
+              --data '{"productId":"product-123","customerId":"08012345678","debitAccountId":"868c2b6f-167d-480b-9bba-c782c40e3d73","amount":1000,"reference":"bill-client-001"}'
+        - lang: Node
+          label: Node (fetch)
+          source: |
+            import fetch from 'node-fetch';
+            const res = await fetch('https://api.lenco.co/access/v1/bills/payments', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${process.env.API_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ productId: 'product-123', customerId: '08012345678', debitAccountId: '868c2b6f-167d-480b-9bba-c782c40e3d73', amount: 1000, reference: 'bill-client-001' })
+            });
+            console.log(await res.json());
+        - lang: Python
+          label: Python (requests)
+          source: |
+            import os, requests
+            API_KEY = os.getenv('API_KEY')
+            url = 'https://api.lenco.co/access/v1/bills/payments'
+            payload = { 'productId': 'product-123', 'customerId': '08012345678', 'debitAccountId': '868c2b6f-167d-480b-9bba-c782c40e3d73', 'amount': 1000, 'reference': 'bill-client-001' }
+            r = requests.post(url, json=payload, headers={'Authorization': f'Bearer {API_KEY}'})
+            print(r.json())
+
+      responses:
+        '201':
+          description: Bill payment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillPaymentResponse'
+              examples:
+                billPaymentExampleResponse:
+                  summary: Example created bill payment
+                  value:
+                    status: true
+                    message: "OK"
+                    data:
+                      id: "bill-001"
+                      amount: "1000"
+                      status: "pending"
+                      transactionReference: "txn-bill-001"
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    get:
+      operationId: listBillPayments
+      tags: [Bill Payment]
+      summary: List bill payments
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, successful, failed]
+          description: Filter by payment status
+        - name: customerId
+          in: query
+          schema:
+            type: string
+          description: Filter by customer ID
+        - name: productId
+          in: query
+          schema:
+            type: string
+          description: Filter by product ID
+        - name: vendorIds
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Filter by vendor IDs
+        - name: categories
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [airtime, mobile-data, cable-tv, electricity]
+          description: Filter by categories
+        - name: start
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Start date for filtering (ISO8601)
+        - name: end
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: End date for filtering (ISO8601)
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          billPayments:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                          meta:
+                            type: object
+                            properties:
+                              total:
+                                type: integer
+                              pageCount:
+                                type: integer
+                              perPage:
+                                type: integer
+                              currentPage:
+                                type: integer
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills/payments/{paymentId}:
+    parameters:
+      - name: paymentId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getBillPaymentById
+      tags: [Bill Payment]
+      summary: Get bill payment by ID
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillPaymentResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bills/payments/by-reference/{reference}:
+    parameters:
+      - name: reference
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getBillPaymentByReference
+      tags: [Bill Payment]
+      summary: Get bill payment by reference
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillPaymentResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
+
+  /point-of-sale/terminals:
+    get:
+      operationId: listPOSTerminals
+      tags: [Point of Sale]
+      summary: Get assigned POS terminals
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: serialNumber
+          in: query
+          schema:
+            type: string
+          description: Filter by terminal serial number
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/POSDevicesResponse'
+              examples:
+                posTermsExample:
+                  summary: POS terminals example
+                  value:
+                    status: true
+                    message: "OK"
+                    data:
+                      terminals:
+                        - id: "term-001"
+                          serialNumber: "P260300146913"
+                          name: "Main Counter Terminal"
+                          assignedTo: "Lenco Bakeries"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /point-of-sale/terminals/assign:
+    post:
+      operationId: assignPOSTerminal
+      tags: [Point of Sale]
+      summary: Assign a POS terminal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                serialNumber:
+                  type: string
+                  description: Terminal serial number (required)
+                name:
+                  type: string
+                  description: Terminal name/label (required)
+                address:
+                  type: string
+                  description: Terminal address
+                phone:
+                  type: string
+                  description: Contact phone number
+              required:
+                - serialNumber
+                - name
+            examples:
+              assignTerminalExample:
+                summary: Assign POS terminal to a merchant
+                value:
+                  serialNumber: "P260300146913"
+                  name: "Main Counter Terminal"
+                  address: "123 Main Street, Lagos"
+                  phone: "08012345678"
+      responses:
+        '201':
+          description: Device assignment created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/POSDevice'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /point-of-sale/terminals/unassign:
+    post:
+      operationId: unassignPOSTerminal
+      tags: [Point of Sale]
+      summary: Unassign a POS terminal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: Terminal ID (one of id or serialNumber required)
+                serialNumber:
+                  type: string
+                  description: Terminal serial number (one of id or serialNumber required)
+            examples:
+              unassignById:
+                summary: Unassign by ID
+                value:
+                  id: "term-001"
+              unassignBySerial:
+                summary: Unassign by serial number
+                value:
+                  serialNumber: "P260300146913"
+      responses:
+        '200':
+          description: Unassignment succeeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /point-of-sale/terminals/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getPOSTerminalById
+      tags: [Point of Sale]
+      summary: Get POS terminal by ID
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/POSDevice'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /point-of-sale/transactions:
+    get:
+      operationId: listPOSTransactions
+      tags: [Point of Sale]
+      summary: Get POS transactions
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: terminalId
+          in: query
+          schema:
+            type: string
+          description: Filter by assigned POS terminal ID
+        - name: terminalSerialNumber
+          in: query
+          schema:
+            type: string
+          description: Filter by POS terminal serial number
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [successful, failed]
+          description: Filter by transaction status
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [card-payment, transfer]
+          description: Filter by transaction type
+        - name: start
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Start date for filtering. Format YYYY-MM-DD
+        - name: end
+          in: query
+          schema:
+            type: string
+            format: date
+          description: End date for filtering. Format YYYY-MM-DD
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/POSTransactionsResponse'
+              examples:
+                posTxListExample:
+                  summary: Example POS transactions
+                  value:
+                    status: true
+                    message: "OK"
+                    data:
+                      transactions:
+                        - id: "pos-tx-001"
+                          reference: "pos-ref-123"
+                          amount: "5000"
+                          currency: "NGN"
+                          status: "successful"
+              # examples intentionally omitted — schema-level example exists in components
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /point-of-sale/transactions/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getPOSTransactionById
+      tags: [Point of Sale]
+      summary: Get POS transaction by ID
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/POSPayment'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /point-of-sale/transactions/by-reference/{reference}:
+    parameters:
+      - name: reference
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Point of Sale]
+      summary: Get POS transaction by reference
+      operationId: getPOSTransactionByReference
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/POSPayment'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /point-of-sale/transactions/webhook/repush:
+    post:
+      operationId: repushPOSTransactionWebhook
+      tags: [Point of Sale]
+      summary: Re-push a POS transaction webhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                reference:
+                  type: string
+            examples:
+              repushById:
+                summary: Repush by id
+                value:
+                  id: "pos-tx-001"
+              repushByReference:
+                summary: Repush by reference
+                value:
+                  reference: "pos-ref-123"
+      x-codeSamples:
+        - lang: cURL
+          label: cURL
+          source: |
+            curl --request POST \
+              --url https://api.lenco.co/access/v1/point-of-sale/transactions/webhook/repush \
+              --header 'Authorization: Bearer $API_KEY' \
+              --header 'Content-Type: application/json' \
+              --data '{"reference":"pos-ref-123"}'
+        - lang: Node
+          label: Node (fetch)
+          source: |
+            import fetch from 'node-fetch';
+            const res = await fetch('https://api.lenco.co/access/v1/point-of-sale/transactions/webhook/repush', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${process.env.API_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ reference: 'pos-ref-123' })
+            });
+            console.log(await res.json());
+        - lang: Python
+          label: Python (requests)
+          source: |
+            import os, requests
+            API_KEY = os.getenv('API_KEY')
+            url = 'https://api.lenco.co/access/v1/point-of-sale/transactions/webhook/repush'
+            r = requests.post(url, json={'reference': 'pos-ref-123'}, headers={'Authorization': f'Bearer {API_KEY}'})
+            print(r.json())
+      responses:
+        '200':
+          description: Webhook repush queued
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

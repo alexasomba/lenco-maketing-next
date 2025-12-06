@@ -1,7 +1,7 @@
 import { source } from "@/lib/source";
 import { DocsPage, DocsBody, DocsTitle, DocsDescription } from "fumadocs-ui/page";
 import { notFound } from "next/navigation";
-import defaultMdxComponents from "fumadocs-ui/mdx";
+import { getMDXComponents } from "@/mdx-components";
 import type { Metadata } from "next";
 
 // Force dynamic rendering for Cloudflare Workers compatibility
@@ -25,7 +25,7 @@ export default async function Page(props: PageProps) {
 			<DocsTitle>{data.title}</DocsTitle>
 			<DocsDescription>{data.description}</DocsDescription>
 			<DocsBody>
-				<MDX components={{ ...defaultMdxComponents }} />
+				<MDX components={getMDXComponents()} />
 			</DocsBody>
 		</DocsPage>
 	);
