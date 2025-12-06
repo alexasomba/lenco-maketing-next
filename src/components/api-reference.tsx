@@ -73,6 +73,13 @@ export function APIReference({ defaultVersion = "v2" }: { defaultVersion?: ApiVe
 						defaultOpenAllTags: false,
 						searchHotKey: "k",
 						hideDownloadButton: false,
+						// Show all HTTP clients (empty array = show all)
+						hiddenClients: [],
+						// Set default HTTP client to Shell/curl
+						defaultHttpClient: {
+							targetKey: "shell",
+							clientKey: "curl",
+						},
 						metaData: {
 							title: currentApi.title,
 							description: currentApi.description,
