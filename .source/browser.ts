@@ -7,6 +7,6 @@ const create = browser<typeof Config, import("fumadocs-mdx/runtime/types").Inter
   }
 }>();
 const browserCollections = {
-  docs: create.doc("docs", {"ui/manual-installation/next.mdx": () => import("../content/docs/ui/manual-installation/next.mdx?collection=docs"), }),
+  docs: create.doc("docs", {"api.mdx": () => import("../content/docs/api.mdx?collection=docs"), "authentication.mdx": () => import("../content/docs/authentication.mdx?collection=docs"), "index.mdx": () => import("../content/docs/index.mdx?collection=docs"), "webhooks.mdx": () => import("../content/docs/webhooks.mdx?collection=docs"), }),
 };
 export default browserCollections;

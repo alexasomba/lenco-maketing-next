@@ -1,0 +1,50 @@
+---
+title: API Reference
+description: Complete API reference for Lenco services
+---
+
+## Overview
+
+The Lenco API is organized around REST. Our API has predictable resource-oriented URLs, accepts JSON-encoded request bodies, returns JSON-encoded responses, and uses standard HTTP response codes.
+
+## Base URL
+
+All API requests should be made to:
+
+```
+https://api.lenco.co/v1
+```
+
+## Authentication
+
+The Lenco API uses API keys to authenticate requests. You can view and manage your API keys in the Lenco Dashboard.
+
+```bash
+curl https://api.lenco.co/v1/accounts \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Response Format
+
+All responses are returned in JSON format:
+
+```json
+{
+  "success": true,
+  "data": {
+    // Response data here
+  }
+}
+```
+
+## Error Handling
+
+Errors are returned with appropriate HTTP status codes:
+
+| Status Code | Description |
+|-------------|-------------|
+| 200 | Success |
+| 400 | Bad Request |
+| 401 | Unauthorized |
+| 404 | Not Found |
+| 500 | Internal Server Error |

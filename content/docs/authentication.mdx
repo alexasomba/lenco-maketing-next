@@ -1,0 +1,52 @@
+---
+title: Authentication
+description: Learn how to authenticate with the Lenco API
+---
+
+## API Keys
+
+All API requests require authentication using an API key. You can generate API keys from your Lenco Dashboard.
+
+### Types of API Keys
+
+| Type | Description |
+|------|-------------|
+| **Test Keys** | Use these for development. Transactions are simulated. |
+| **Live Keys** | Use these in production. Transactions are real. |
+
+## Making Authenticated Requests
+
+Include your API key in the `Authorization` header:
+
+```bash
+curl https://api.lenco.co/v1/accounts \
+  -H "Authorization: Bearer sk_test_xxxxx"
+```
+
+## Security Best Practices
+
+1. **Never expose your API keys** in client-side code
+2. **Rotate keys regularly** for enhanced security
+3. **Use environment variables** to store keys
+4. **Restrict key permissions** to only what's needed
+
+## Webhooks Authentication
+
+Webhook payloads include a signature header that you should verify:
+
+```typescript
+import crypto from 'crypto';
+
+function verifyWebhookSignature(
+  payload: string,
+  signature: string,
+  secret: string
+): boolean {
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+  
+  return signature === expectedSignature;
+}
+```

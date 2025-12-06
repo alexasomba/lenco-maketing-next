@@ -20,6 +20,8 @@
 		],
 		"paths": {
 			"@/*": ["./src/*"],
+			"@/mdx-components": ["./mdx-components.tsx"],
+			"@/.source/*": ["./.source/*"],
 			"fumadocs-mdx:collections/*": ["./.source/*"]
 		},
 		"types": [

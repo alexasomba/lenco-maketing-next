@@ -1,0 +1,79 @@
+---
+title: Webhooks
+description: Receive real-time notifications for events
+---
+
+## Overview
+
+Webhooks allow you to receive real-time notifications when events occur in your Lenco account. Instead of polling for changes, webhooks push data to your server as events happen.
+
+## Setting Up Webhooks
+
+1. Go to your Lenco Dashboard
+2. Navigate to **Settings** → **Webhooks**
+3. Add your webhook URL
+4. Select the events you want to receive
+
+## Event Types
+
+| Event | Description |
+|-------|-------------|
+| `payment.received` | A payment was received |
+| `payment.sent` | A payment was sent |
+| `transfer.completed` | A transfer was completed |
+| `transfer.failed` | A transfer failed |
+
+## Webhook Payload
+
+```json
+{
+  "event": "payment.received",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "data": {
+    "id": "pay_123456789",
+    "amount": 50000,
+    "currency": "NGN",
+    "reference": "REF-001",
+    "status": "completed"
+  }
+}
+```
+
+## Handling Webhooks
+
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(request: NextRequest) {
+  const payload = await request.text();
+  const signature = request.headers.get('x-lenco-signature');
+  
+  // Verify the signature
+  if (!verifySignature(payload, signature)) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+  }
+  
+  const event = JSON.parse(payload);
+  
+  // Handle the event
+  switch (event.event) {
+    case 'payment.received':
+      // Handle payment received
+      break;
+    case 'transfer.completed':
+      // Handle transfer completed
+      break;
+  }
+  
+  return NextResponse.json({ received: true });
+}
+```
+
+## Retry Policy
+
+If your endpoint returns a non-2xx response, we'll retry the webhook:
+
+- **First retry**: 5 minutes after the initial attempt
+- **Second retry**: 30 minutes after the first retry
+- **Third retry**: 2 hours after the second retry
+- **Final retry**: 24 hours after the third retry
