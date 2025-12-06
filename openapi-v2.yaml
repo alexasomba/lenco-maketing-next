@@ -1,0 +1,2383 @@
+openapi: 3.1.0
+info:
+  title: Lenco API
+  version: "2.0.0"
+  description: |
+    Lenco API v2 - Build amazing web and mobile payment integration experiences.
+    
+    With Lenco API, you can access all your accounts and sub-accounts and their
+    transaction histories. This documentation covers accounts, banks, transfers,
+    collections, settlements, and more.
+    
+    ## Authentication
+    
+    All API requests must be authenticated using a Bearer token in the Authorization header:
+    
+    ```
+    Authorization: Bearer YOUR_API_TOKEN
+    ```
+    
+    To get your API token, contact [support@lenco.co](mailto:support@lenco.co).
+    
+    ## Base URL
+    
+    All API requests should be made to: `https://api.lenco.co/access/v2`
+    
+    ## Response Format
+    
+    All responses are returned in JSON format with the following structure:
+    
+    ```json
+    {
+      "status": true,
+      "message": "Success message",
+      "data": { ... }
+    }
+    ```
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  contact:
+    email: support@lenco.co
+    name: Lenco Support
+
+servers:
+  - url: https://api.lenco.co/access/v2
+    description: Lenco API v2 (production)
+  - url: https://sandbox.lenco.co/access/v2
+    description: Lenco API v2 (sandbox)
+
+tags:
+  - name: Accounts
+    description: Manage your Lenco accounts and retrieve balances
+  - name: Banks
+    description: Retrieve list of supported banks
+  - name: Resolve Account
+    description: Verify bank account and mobile money details
+  - name: Recipients
+    description: Manage transfer recipients
+  - name: Transfers
+    description: Initiate and track money transfers
+  - name: Collections
+    description: Accept payments and track collections
+  - name: Settlements
+    description: View settlement information
+  - name: Transactions
+    description: View transaction history
+  - name: Encryption
+    description: Get encryption keys for sensitive operations
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: API token obtained from Lenco
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Validation error"
+        errorCode:
+          type: string
+          example: "01"
+
+    Meta:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total number of records
+        perPage:
+          type: integer
+          description: Maximum records per request
+        currentPage:
+          type: integer
+          description: Current page number
+        pageCount:
+          type: integer
+          description: Total number of pages
+
+    Bank:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        country:
+          type: string
+          example: "ng"
+
+    AccountDetails:
+      type: object
+      properties:
+        type:
+          type: string
+        accountName:
+          type: string
+        tillNumber:
+          type: string
+
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        details:
+          $ref: '#/components/schemas/AccountDetails'
+        type:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        currency:
+          type: string
+          example: "NGN"
+        availableBalance:
+          type: string
+          nullable: true
+        ledgerBalance:
+          type: string
+          nullable: true
+
+    AccountBalance:
+      type: object
+      properties:
+        availableBalance:
+          type: string
+        ledgerBalance:
+          type: string
+        currency:
+          type: string
+
+    ResolvedBankAccount:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "bank-account"
+        accountName:
+          type: string
+          example: "JOHN DOE"
+        accountNumber:
+          type: string
+          example: "0123456780"
+        bank:
+          $ref: '#/components/schemas/Bank'
+
+    ResolvedMobileMoney:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "mobile-money"
+        accountName:
+          type: string
+          example: "JOHN DOE"
+        phone:
+          type: string
+          example: "0971234567"
+        operator:
+          type: string
+          enum: [airtel, mtn, zamtel, tnm]
+          example: "airtel"
+        country:
+          type: string
+          example: "zm"
+
+    ResolvedLencoMoney:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "lenco-money"
+        accountName:
+          type: string
+          example: "JOHN DOE"
+        walletNumber:
+          type: string
+          example: "1234567890"
+
+    ResolvedLencoMerchant:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "lenco-merchant"
+        accountName:
+          type: string
+          example: "ACME STORE"
+        tillNumber:
+          type: string
+          example: "123456"
+
+    TransferRecipientDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [bank-account, mobile-money, lenco-money, lenco-merchant]
+        accountName:
+          type: string
+        accountNumber:
+          type: string
+          nullable: true
+        bank:
+          $ref: '#/components/schemas/Bank'
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        operator:
+          type: string
+          nullable: true
+        walletNumber:
+          type: string
+          nullable: true
+        tillNumber:
+          type: string
+          nullable: true
+
+    TransferRecipient:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        currency:
+          type: string
+        type:
+          type: string
+          enum: [bank-account, mobile-money, lenco-money, lenco-merchant]
+        country:
+          type: string
+        details:
+          $ref: '#/components/schemas/TransferRecipientDetails'
+
+    CreditAccount:
+      type: object
+      properties:
+        id:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum: [bank-account, mobile-money, lenco-money, lenco-merchant]
+        accountName:
+          type: string
+        accountNumber:
+          type: string
+          nullable: true
+        bank:
+          $ref: '#/components/schemas/Bank'
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        operator:
+          type: string
+          nullable: true
+        walletNumber:
+          type: string
+          nullable: true
+        tillNumber:
+          type: string
+          nullable: true
+
+    Transfer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        amount:
+          type: string
+        fee:
+          type: string
+        currency:
+          type: string
+        narration:
+          type: string
+        initiatedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        accountId:
+          type: string
+          format: uuid
+        creditAccount:
+          $ref: '#/components/schemas/CreditAccount'
+        status:
+          type: string
+          enum: [pending, successful, failed, pay-offline, 3ds-auth-required]
+          description: |
+            Collection status:
+            - pending: Awaiting processing
+            - successful: Payment completed
+            - failed: Payment failed
+            - pay-offline: Mobile money - awaiting customer authorization on phone
+            - 3ds-auth-required: Card - awaiting 3DS authentication
+        meta:
+          $ref: '#/components/schemas/Collection3DSAuthMeta'
+          nullable: true
+          description: Additional metadata (e.g., 3DS redirect URL)
+        reasonForFailure:
+          type: string
+          nullable: true
+        reference:
+          type: string
+          nullable: true
+        lencoReference:
+          type: string
+        extraData:
+          type: object
+          properties:
+            nipSessionId:
+              type: string
+              nullable: true
+        source:
+          type: string
+          enum: [banking-app, api]
+
+    Settlement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        amountSettled:
+          type: string
+        currency:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        settledAt:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          enum: [pending, settled]
+        type:
+          type: string
+          enum: [instant, next-day]
+        accountId:
+          type: string
+          format: uuid
+
+    MobileMoneyDetails:
+      type: object
+      properties:
+        country:
+          type: string
+        phone:
+          type: string
+        operator:
+          type: string
+        accountName:
+          type: string
+          nullable: true
+        operatorTransactionId:
+          type: string
+          nullable: true
+
+    CardDetails:
+      type: object
+      properties:
+        firstName:
+          type: string
+          nullable: true
+        lastName:
+          type: string
+          nullable: true
+        bin:
+          type: string
+          nullable: true
+        last4:
+          type: string
+          nullable: true
+        cardType:
+          type: string
+          nullable: true
+
+    Collection:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        initiatedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        amount:
+          type: string
+        fee:
+          type: string
+          nullable: true
+        bearer:
+          type: string
+          enum: [merchant, customer]
+        currency:
+          type: string
+        reference:
+          type: string
+          nullable: true
+        lencoReference:
+          type: string
+        type:
+          type: string
+          enum: [card, mobile-money, bank-account]
+          nullable: true
+        status:
+          type: string
+          enum: [pending, successful, failed, pay-offline, 3ds-auth-required]
+        source:
+          type: string
+          enum: [banking-app, api]
+        reasonForFailure:
+          type: string
+          nullable: true
+        settlementStatus:
+          type: string
+          enum: [pending, settled]
+          nullable: true
+        settlement:
+          $ref: '#/components/schemas/Settlement'
+          nullable: true
+        mobileMoneyDetails:
+          $ref: '#/components/schemas/MobileMoneyDetails'
+          nullable: true
+        bankAccountDetails:
+          type: object
+          nullable: true
+        cardDetails:
+          $ref: '#/components/schemas/CardDetails'
+          nullable: true
+
+    SettlementWithCollection:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        amountSettled:
+          type: string
+        currency:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        settledAt:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          enum: [pending, settled]
+        type:
+          type: string
+          enum: [instant, next-day]
+        accountId:
+          type: string
+          format: uuid
+        collection:
+          $ref: '#/components/schemas/Collection'
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        amount:
+          type: string
+        currency:
+          type: string
+        narration:
+          type: string
+        type:
+          type: string
+          enum: [credit, debit]
+        datetime:
+          type: string
+          format: date-time
+        accountId:
+          type: string
+          format: uuid
+        balance:
+          type: string
+          nullable: true
+
+    EncryptionKey:
+      type: object
+      properties:
+        kty:
+          type: string
+          example: "RSA"
+        use:
+          type: string
+          example: "enc"
+        n:
+          type: string
+          description: RSA modulus
+        e:
+          type: string
+          example: "AQAB"
+        kid:
+          type: string
+          description: Key ID
+
+    CardPayloadDecrypted:
+      type: object
+      description: |
+        The payload structure to encrypt using JWE before sending to /collections/card.
+        Use RSA-OAEP-256 for key encryption and A256GCM for content encryption.
+      required:
+        - email
+        - reference
+        - amount
+        - currency
+        - card
+      properties:
+        email:
+          type: string
+          format: email
+          description: Customer email address
+          example: "customer@example.com"
+        reference:
+          type: string
+          description: Unique client reference
+          example: "card-collection-123"
+        amount:
+          type: number
+          format: double
+          description: Amount to collect
+          example: 1000
+        currency:
+          type: string
+          description: Currency code
+          example: "ZMW"
+        bearer:
+          type: string
+          enum: [merchant, customer]
+          description: Who bears the transaction fee
+          example: "merchant"
+        customer:
+          type: object
+          properties:
+            firstName:
+              type: string
+              example: "John"
+            lastName:
+              type: string
+              example: "Doe"
+        billing:
+          type: object
+          properties:
+            streetAddress:
+              type: string
+              example: "123 Main St"
+            city:
+              type: string
+              example: "Lusaka"
+            state:
+              type: string
+              example: "Lusaka"
+            postalCode:
+              type: string
+              example: "10101"
+            country:
+              type: string
+              example: "ZM"
+        card:
+          type: object
+          required:
+            - number
+            - expiryMonth
+            - expiryYear
+            - cvv
+          properties:
+            number:
+              type: string
+              description: Card number (PAN)
+              example: "4111111111111111"
+            expiryMonth:
+              type: string
+              description: Card expiry month (MM)
+              example: "12"
+            expiryYear:
+              type: string
+              description: Card expiry year (YY or YYYY)
+              example: "25"
+            cvv:
+              type: string
+              description: Card CVV/CVC
+              example: "123"
+        redirectUrl:
+          type: string
+          format: uri
+          description: URL to redirect after 3DS authentication
+          example: "https://yoursite.com/payment/callback"
+
+    Collection3DSAuthMeta:
+      type: object
+      description: Additional metadata returned when 3DS authentication is required
+      properties:
+        authorization:
+          type: object
+          properties:
+            redirect:
+              type: string
+              format: uri
+              description: URL to redirect customer for 3DS authentication
+              example: "https://pay.lenco.co/3ds/auth/abc123"
+
+  responses:
+    BadRequest:
+      description: Bad Request - Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized - Invalid or missing API token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ============ ACCOUNTS ============
+  /accounts:
+    get:
+      operationId: getAccounts
+      summary: Get Accounts
+      description: Retrieve information about all your bank accounts
+      tags:
+        - Accounts
+      parameters:
+        - name: page
+          in: query
+          description: Page number (defaults to 1)
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: Accounts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Account'
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /accounts/{id}:
+    get:
+      operationId: getAccountById
+      summary: Get Account by ID
+      description: Retrieve information about a specific bank account
+      tags:
+        - Accounts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 36-character account UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Account retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Account'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /accounts/{id}/balance:
+    get:
+      operationId: getAccountBalance
+      summary: Get Account Balance
+      description: Retrieve the balance of a specific bank account
+      tags:
+        - Accounts
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 36-character account UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Balance retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/AccountBalance'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============ BANKS ============
+  /banks:
+    get:
+      operationId: getBanks
+      summary: Get Banks
+      description: Get list of banks and financial institutions
+      tags:
+        - Banks
+      parameters:
+        - name: country
+          in: query
+          description: Country code (e.g., ng, zm)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Banks retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Bank'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============ RESOLVE ACCOUNT ============
+  /resolve/bank-account:
+    post:
+      operationId: resolveBankAccount
+      summary: Resolve Bank Account
+      description: Verify and resolve bank account details
+      tags:
+        - Resolve Account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accountNumber
+                - bankId
+              properties:
+                accountNumber:
+                  type: string
+                  description: Bank account number
+                bankId:
+                  type: string
+                  description: Bank ID from /banks endpoint
+                country:
+                  type: string
+                  description: Country code (e.g., ng, zm)
+      responses:
+        '200':
+          description: Account resolved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ResolvedBankAccount'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /resolve/mobile-money:
+    post:
+      operationId: resolveMobileMoney
+      summary: Resolve Mobile Money Account
+      description: Verify and resolve mobile money account details
+      tags:
+        - Resolve Account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone
+                - operator
+              properties:
+                phone:
+                  type: string
+                  description: Mobile phone number
+                  example: "0971234567"
+                operator:
+                  type: string
+                  enum: [airtel, mtn, zamtel, tnm]
+                  description: "Mobile money operator: airtel, mtn, zamtel (Zambia) or tnm (Malawi)"
+                  example: "airtel"
+                country:
+                  type: string
+                  description: Country code (zm for Zambia, mw for Malawi)
+                  example: "zm"
+            example:
+              phone: "0971234567"
+              operator: "airtel"
+              country: "zm"
+      responses:
+        '200':
+          description: Mobile money account resolved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ResolvedMobileMoney'
+              example:
+                status: true
+                message: "Mobile money account resolved successfully"
+                data:
+                  type: "mobile-money"
+                  accountName: "JOHN DOE"
+                  phone: "0971234567"
+                  operator: "airtel"
+                  country: "zm"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /resolve/lenco-money:
+    post:
+      operationId: resolveLencoMoney
+      summary: Resolve Lenco Money Account
+      description: Verify and resolve Lenco Money account details
+      tags:
+        - Resolve Account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - walletNumber
+              properties:
+                walletNumber:
+                  type: string
+                  description: Lenco wallet number
+                  example: "1234567890"
+            example:
+              walletNumber: "1234567890"
+      responses:
+        '200':
+          description: Lenco Money account resolved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ResolvedLencoMoney'
+              example:
+                status: true
+                message: "Lenco Money account resolved successfully"
+                data:
+                  type: "lenco-money"
+                  accountName: "JOHN DOE"
+                  walletNumber: "1234567890"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /resolve/lenco-merchant:
+    post:
+      operationId: resolveLencoMerchant
+      summary: Resolve Lenco Merchant Account
+      description: Verify and resolve Lenco Merchant account details
+      tags:
+        - Resolve Account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tillNumber
+              properties:
+                tillNumber:
+                  type: string
+                  description: Lenco merchant till number
+                  example: "123456"
+            example:
+              tillNumber: "123456"
+      responses:
+        '200':
+          description: Lenco Merchant account resolved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/ResolvedLencoMerchant'
+              example:
+                status: true
+                message: "Lenco Merchant account resolved successfully"
+                data:
+                  type: "lenco-merchant"
+                  accountName: "ACME STORE"
+                  tillNumber: "123456"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============ TRANSFER RECIPIENTS ============
+  /transfer-recipients:
+    get:
+      operationId: getTransferRecipients
+      summary: Get Transfer Recipients
+      description: Retrieve information about all your transfer recipients
+      tags:
+        - Recipients
+      parameters:
+        - name: page
+          in: query
+          description: Page number (defaults to 1)
+          schema:
+            type: integer
+            default: 1
+        - name: type
+          in: query
+          description: Recipient type filter
+          schema:
+            type: string
+            enum: [mobile-money, bank-account, lenco-money, lenco-merchant]
+        - name: country
+          in: query
+          description: Country code (e.g., ng, zm)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Recipients retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TransferRecipient'
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /transfer-recipients/{id}:
+    get:
+      operationId: getTransferRecipientById
+      summary: Get Transfer Recipient by ID
+      description: Retrieve information about a specific transfer recipient
+      tags:
+        - Recipients
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 36-character transfer recipient UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Recipient retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/TransferRecipient'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /transfer-recipients/bank-account:
+    post:
+      operationId: createBankAccountRecipient
+      summary: Create Bank Account Recipient
+      description: Create a transfer recipient as a bank account
+      tags:
+        - Recipients
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accountNumber
+                - bankId
+              properties:
+                accountNumber:
+                  type: string
+                  description: Bank account number
+                bankId:
+                  type: string
+                  description: Bank ID from /banks endpoint
+                country:
+                  type: string
+                  description: Country code (optional)
+      responses:
+        '200':
+          description: Recipient created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/TransferRecipient'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /transfer-recipients/mobile-money:
+    post:
+      operationId: createMobileMoneyRecipient
+      summary: Create Mobile Money Recipient
+      description: Create a transfer recipient as a mobile money account
+      tags:
+        - Recipients
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone
+                - operator
+              properties:
+                phone:
+                  type: string
+                  description: Mobile phone number
+                  example: "0971234567"
+                operator:
+                  type: string
+                  enum: [airtel, mtn, zamtel, tnm]
+                  description: "Mobile money operator: airtel, mtn, zamtel (Zambia) or tnm (Malawi)"
+                  example: "airtel"
+                country:
+                  type: string
+                  description: Country code (zm for Zambia, mw for Malawi)
+                  example: "zm"
+            example:
+              phone: "0971234567"
+              operator: "airtel"
+              country: "zm"
+      responses:
+        '200':
+          description: Recipient created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/TransferRecipient'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /transfer-recipients/lenco-money:
+    post:
+      operationId: createLencoMoneyRecipient
+      summary: Create Lenco Money Recipient
+      description: Create a transfer recipient as a Lenco Money wallet
+      tags:
+        - Recipients
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - walletNumber
+              properties:
+                walletNumber:
+                  type: string
+                  description: Lenco wallet number
+      responses:
+        '200':
+          description: Recipient created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/TransferRecipient'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /transfer-recipients/lenco-merchant:
+    post:
+      operationId: createLencoMerchantRecipient
+      summary: Create Lenco Merchant Recipient
+      description: Create a transfer recipient as a Lenco Merchant
+      tags:
+        - Recipients
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tillNumber
+              properties:
+                tillNumber:
+                  type: string
+                  description: Lenco merchant till number
+      responses:
+        '200':
+          description: Recipient created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/TransferRecipient'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============ TRANSFERS ============
+  /transfers:
+    get:
+      operationId: getTransfers
+      summary: Get Transfers
+      description: Retrieve information about your transfers
+      tags:
+        - Transfers
+      parameters:
+        - name: page
+          in: query
+          description: Page number (defaults to 1)
+          schema:
+            type: integer
+            default: 1
+        - name: from
+          in: query
+          description: Start date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          description: End date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: search
+          in: query
+          description: Search term
+          schema:
+            type: string
+        - name: accountId
+          in: query
+          description: Filter by account UUID
+          schema:
+            type: string
+            format: uuid
+        - name: transferRecipientId
+          in: query
+          description: Filter by transfer recipient UUID
+          schema:
+            type: string
+            format: uuid
+        - name: type
+          in: query
+          description: Transfer type filter
+          schema:
+            type: string
+            enum: [mobile-money, bank-account, lenco-money, lenco-merchant]
+        - name: status
+          in: query
+          description: Transfer status filter
+          schema:
+            type: string
+            enum: [pending, successful, failed]
+        - name: country
+          in: query
+          description: Country code (e.g., ng, zm)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transfers retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transfer'
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /transfers/{id}:
+    get:
+      operationId: getTransferById
+      summary: Get Transfer by ID
+      description: Retrieve information about a specific transfer
+      tags:
+        - Transfers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 36-character transfer UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Transfer retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Transfer'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /transfers/status/{reference}:
+    get:
+      operationId: getTransferByReference
+      summary: Get Transfer by Reference
+      description: Retrieve information about a transfer using your reference
+      tags:
+        - Transfers
+      parameters:
+        - name: reference
+          in: path
+          required: true
+          description: Your unique transfer reference
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transfer retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Transfer'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /transfers/bank-account:
+    post:
+      operationId: transferToBankAccount
+      summary: Transfer to Bank Account
+      description: Initiate a transfer to a bank account
+      tags:
+        - Transfers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accountId
+                - amount
+                - reference
+              properties:
+                accountId:
+                  type: string
+                  format: uuid
+                  description: 36-character account UUID to debit
+                amount:
+                  type: number
+                  format: double
+                  description: Amount to transfer
+                narration:
+                  type: string
+                  description: Transfer narration (optional)
+                reference:
+                  type: string
+                  description: Unique client reference. Only -, ., _ and alphanumeric allowed
+                transferRecipientId:
+                  type: string
+                  format: uuid
+                  description: 36-character transfer recipient UUID (optional if accountNumber and bankId provided)
+                accountNumber:
+                  type: string
+                  description: Destination account number (optional if transferRecipientId provided)
+                bankId:
+                  type: string
+                  description: Destination bank ID (optional if transferRecipientId provided)
+                country:
+                  type: string
+                  description: Country code (optional)
+      responses:
+        '200':
+          description: Transfer initiated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Transfer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /transfers/mobile-money:
+    post:
+      operationId: transferToMobileMoney
+      summary: Transfer to Mobile Money
+      description: |
+        Initiate a transfer to a mobile money account.
+        
+        Supported countries:
+        - Zambia (zm): airtel, mtn, zamtel
+        - Malawi (mw): airtel, tnm
+      tags:
+        - Transfers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accountId
+                - amount
+                - reference
+              properties:
+                accountId:
+                  type: string
+                  format: uuid
+                  description: 36-character account UUID to debit
+                  example: "868c2b6f-167d-480b-9bba-c782c40e3d73"
+                amount:
+                  type: number
+                  format: double
+                  description: Amount to transfer
+                  example: 500
+                narration:
+                  type: string
+                  description: Transfer narration (optional)
+                  example: "Mobile money transfer"
+                reference:
+                  type: string
+                  description: Unique client reference. Only -, ., _ and alphanumeric allowed
+                  example: "momo-transfer-123"
+                transferRecipientId:
+                  type: string
+                  format: uuid
+                  description: 36-character transfer recipient UUID (optional)
+                phone:
+                  type: string
+                  description: Destination phone number (optional if transferRecipientId provided)
+                  example: "0971234567"
+                operator:
+                  type: string
+                  enum: [airtel, mtn, zamtel, tnm]
+                  description: "Mobile money operator: airtel, mtn, zamtel (Zambia) or airtel, tnm (Malawi)"
+                  example: "airtel"
+                country:
+                  type: string
+                  description: Country code (zm for Zambia, mw for Malawi)
+                  example: "zm"
+            example:
+              accountId: "868c2b6f-167d-480b-9bba-c782c40e3d73"
+              phone: "0971234567"
+              operator: "airtel"
+              country: "zm"
+              amount: 500
+              reference: "momo-transfer-123"
+              narration: "Mobile money transfer"
+      responses:
+        '200':
+          description: Transfer initiated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Transfer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /transfers/lenco-money:
+    post:
+      operationId: transferToLencoMoney
+      summary: Transfer to Lenco Money
+      description: Initiate a transfer to a Lenco Money wallet
+      tags:
+        - Transfers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accountId
+                - amount
+                - reference
+              properties:
+                accountId:
+                  type: string
+                  format: uuid
+                  description: 36-character account UUID to debit
+                amount:
+                  type: number
+                  format: double
+                  description: Amount to transfer
+                narration:
+                  type: string
+                  description: Transfer narration (optional)
+                reference:
+                  type: string
+                  description: Unique client reference
+                transferRecipientId:
+                  type: string
+                  format: uuid
+                  description: 36-character transfer recipient UUID (optional)
+                walletNumber:
+                  type: string
+                  description: Destination Lenco wallet number (optional if transferRecipientId provided)
+      responses:
+        '200':
+          description: Transfer initiated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Transfer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /transfers/lenco-merchant:
+    post:
+      operationId: transferToLencoMerchant
+      summary: Transfer to Lenco Merchant
+      description: Initiate a transfer to a Lenco Merchant
+      tags:
+        - Transfers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accountId
+                - amount
+                - reference
+              properties:
+                accountId:
+                  type: string
+                  format: uuid
+                  description: 36-character account UUID to debit
+                amount:
+                  type: number
+                  format: double
+                  description: Amount to transfer
+                narration:
+                  type: string
+                  description: Transfer narration (optional)
+                reference:
+                  type: string
+                  description: Unique client reference
+                transferRecipientId:
+                  type: string
+                  format: uuid
+                  description: 36-character transfer recipient UUID (optional)
+                tillNumber:
+                  type: string
+                  description: Destination Lenco merchant till number (optional if transferRecipientId provided)
+      responses:
+        '200':
+          description: Transfer initiated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Transfer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /transfers/account:
+    post:
+      operationId: transferToAccount
+      summary: Transfer to Your Account
+      description: Initiate a transfer to one of your own Lenco accounts
+      tags:
+        - Transfers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accountId
+                - amount
+                - reference
+                - creditAccountId
+              properties:
+                accountId:
+                  type: string
+                  format: uuid
+                  description: 36-character account UUID to debit
+                amount:
+                  type: number
+                  format: double
+                  description: Amount to transfer
+                narration:
+                  type: string
+                  description: Transfer narration (optional)
+                reference:
+                  type: string
+                  description: Unique client reference
+                creditAccountId:
+                  type: string
+                  format: uuid
+                  description: 36-character account UUID to credit
+      responses:
+        '200':
+          description: Transfer initiated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Transfer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============ COLLECTIONS ============
+  /collections:
+    get:
+      operationId: getCollections
+      summary: Get Collections
+      description: Retrieve information about your collections
+      tags:
+        - Collections
+      parameters:
+        - name: page
+          in: query
+          description: Page number (defaults to 1)
+          schema:
+            type: integer
+            default: 1
+        - name: from
+          in: query
+          description: Start date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          description: End date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          description: Collection status filter
+          schema:
+            type: string
+            enum: [pending, successful, failed, pay-offline]
+        - name: type
+          in: query
+          description: Collection type filter
+          schema:
+            type: string
+            enum: [card, mobile-money, bank-account]
+        - name: country
+          in: query
+          description: Country code (e.g., ng, zm)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Collections retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Collection'
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /collections/{id}:
+    get:
+      operationId: getCollectionById
+      summary: Get Collection by ID
+      description: Retrieve information about a specific collection
+      tags:
+        - Collections
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 36-character collection UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Collection retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Collection'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /collections/status/{reference}:
+    get:
+      operationId: getCollectionByReference
+      summary: Get Collection by Reference
+      description: Retrieve information about a collection using your reference
+      tags:
+        - Collections
+      parameters:
+        - name: reference
+          in: path
+          required: true
+          description: Your unique collection reference
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Collection retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Collection'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /collections/mobile-money:
+    post:
+      operationId: collectFromMobileMoney
+      summary: Collect from Mobile Money
+      description: |
+        Initiate a collection from a mobile money account.
+        
+        The collection will initially have status `pay-offline` until the customer
+        authorizes the payment on their phone. Listen for `collection.successful`
+        or `collection.failed` webhooks to track the final status.
+      tags:
+        - Collections
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - amount
+                - reference
+                - phone
+                - operator
+              properties:
+                amount:
+                  type: number
+                  format: double
+                  description: Amount to collect
+                  example: 1000
+                reference:
+                  type: string
+                  description: Unique client reference. Only -, ., _ and alphanumeric allowed
+                  example: "collection-ref-123"
+                phone:
+                  type: string
+                  description: Customer's mobile phone number
+                  example: "0971234567"
+                operator:
+                  type: string
+                  enum: [airtel, mtn, tnm]
+                  description: "Mobile money operator: airtel, mtn (Zambia/Malawi) or tnm (Malawi)"
+                  example: "airtel"
+                country:
+                  type: string
+                  description: Country code (zm for Zambia, mw for Malawi)
+                  example: "zm"
+                bearer:
+                  type: string
+                  enum: [merchant, customer]
+                  description: Who bears the transaction fee (defaults to merchant)
+                  example: "merchant"
+            example:
+              amount: 1000
+              reference: "collection-ref-123"
+              phone: "0971234567"
+              operator: "airtel"
+              country: "zm"
+              bearer: "merchant"
+      responses:
+        '200':
+          description: Collection initiated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Collection'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /collections/card:
+    post:
+      operationId: collectFromCard
+      summary: Collect from Card
+      description: |
+        Initiate a collection from a card. This endpoint requires PCI DSS certification
+        and an encrypted payload.
+        
+        ## Encryption Process
+        1. Get RSA public key from `GET /encryption-key`
+        2. Generate AES session key
+        3. Encrypt payload using AES-256-GCM
+        4. Encrypt AES key using RSA-OAEP-256
+        5. Send JWE compact serialized payload
+        
+        ## JOSE Headers
+        - `enc`: A256GCM
+        - `alg`: RSA-OAEP-256
+        - `cty`: application/json
+        - `kid`: from RSA public key
+        
+        ## 3DS Authentication
+        For cards requiring 3DS, the response will have `status: 3ds-auth-required`
+        with `meta.authorization.redirect` URL. Redirect the customer to complete
+        authentication, then they'll be redirected to your `redirectUrl`.
+        
+        See the `CardPayloadDecrypted` schema for the payload structure to encrypt.
+      tags:
+        - Collections
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - encryptedPayload
+              properties:
+                encryptedPayload:
+                  type: string
+                  description: |
+                    JWE compact serialized encrypted payload.
+                    See CardPayloadDecrypted schema for the structure to encrypt.
+                  example: "eyJhbGciOiJSU0EtT0FFUC0yNTYiLCJlbmMiOiJBMjU2R0NNIiwiY3R5IjoiYXBwbGljYXRpb24vanNvbiIsImtpZCI6ImtleS1pZC0xMjMifQ..."
+      responses:
+        '200':
+          description: Collection initiated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Collection'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============ SETTLEMENTS ============
+  /settlements:
+    get:
+      operationId: getSettlements
+      summary: Get Settlements
+      description: Retrieve information about your collection settlements
+      tags:
+        - Settlements
+      parameters:
+        - name: page
+          in: query
+          description: Page number (defaults to 1)
+          schema:
+            type: integer
+            default: 1
+        - name: from
+          in: query
+          description: Start date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          description: End date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          description: Settlement status filter
+          schema:
+            type: string
+            enum: [pending, settled]
+        - name: type
+          in: query
+          description: Settlement type filter
+          schema:
+            type: string
+            enum: [instant, next-day]
+        - name: collectionType
+          in: query
+          description: Collection type filter
+          schema:
+            type: string
+            enum: [card, mobile-money, bank-account]
+        - name: country
+          in: query
+          description: Country code (e.g., ng, zm)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Settlements retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SettlementWithCollection'
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /settlements/{id}:
+    get:
+      operationId: getSettlementById
+      summary: Get Settlement by ID
+      description: Retrieve information about a specific settlement
+      tags:
+        - Settlements
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 36-character settlement UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Settlement retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/SettlementWithCollection'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============ TRANSACTIONS ============
+  /transactions:
+    get:
+      operationId: getTransactions
+      summary: Get Transactions
+      description: Get transactions that occurred on your accounts
+      tags:
+        - Transactions
+      parameters:
+        - name: page
+          in: query
+          description: Page number (defaults to 1)
+          schema:
+            type: integer
+            default: 1
+        - name: type
+          in: query
+          description: Transaction type filter
+          schema:
+            type: string
+            enum: [credit, debit]
+        - name: from
+          in: query
+          description: Start date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          description: End date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: search
+          in: query
+          description: Search term
+          schema:
+            type: string
+        - name: accountId
+          in: query
+          description: Filter by account UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Transactions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /transactions/{id}:
+    get:
+      operationId: getTransactionById
+      summary: Get Transaction by ID
+      description: Retrieve information about a specific transaction
+      tags:
+        - Transactions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 36-character transaction UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Transaction retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Transaction'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============ ENCRYPTION ============
+  /encryption-key:
+    get:
+      operationId: getEncryptionKey
+      summary: Get Encryption Key
+      description: |
+        Get the RSA public key for encrypting sensitive data.
+        
+        This key is used to encrypt card details and other sensitive information
+        before sending to the API. The key may change at any time and should not
+        be stored for reuse.
+      tags:
+        - Encryption
+      responses:
+        '200':
+          description: Encryption key retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/EncryptionKey'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+# Webhooks documentation
+webhooks:
+  transfer.successful:
+    post:
+      summary: Transfer Successful
+      description: Triggered when a transfer is successfully completed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  example: "transfer.successful"
+                data:
+                  $ref: '#/components/schemas/Transfer'
+      responses:
+        '200':
+          description: Webhook received
+
+  transfer.failed:
+    post:
+      summary: Transfer Failed
+      description: Triggered when a transfer fails
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  example: "transfer.failed"
+                data:
+                  $ref: '#/components/schemas/Transfer'
+      responses:
+        '200':
+          description: Webhook received
+
+  collection.successful:
+    post:
+      summary: Collection Successful
+      description: Triggered when a collection is successfully completed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  example: "collection.successful"
+                data:
+                  $ref: '#/components/schemas/Collection'
+      responses:
+        '200':
+          description: Webhook received
+
+  collection.failed:
+    post:
+      summary: Collection Failed
+      description: Triggered when a collection fails
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  example: "collection.failed"
+                data:
+                  $ref: '#/components/schemas/Collection'
+      responses:
+        '200':
+          description: Webhook received
+
+  collection.settled:
+    post:
+      summary: Collection Settled
+      description: Triggered when your account is credited for a collection
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  example: "collection.settled"
+                data:
+                  $ref: '#/components/schemas/Collection'
+      responses:
+        '200':
+          description: Webhook received
+
+  transaction.credit:
+    post:
+      summary: Transaction Credit
+      description: Triggered when an account is credited
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  example: "transaction.credit"
+                data:
+                  $ref: '#/components/schemas/Transaction'
+      responses:
+        '200':
+          description: Webhook received
+
+  transaction.debit:
+    post:
+      summary: Transaction Debit
+      description: Triggered when an account is debited
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  example: "transaction.debit"
+                data:
+                  $ref: '#/components/schemas/Transaction'
+      responses:
+        '200':
+          description: Webhook received

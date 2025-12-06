@@ -1057,6 +1057,243 @@ components:
               amount: "5000"
               currency: "NGN"
               status: "successful"
+    
+    # Webhook Payload Schemas
+    TransactionWebhookPayload:
+      type: object
+      description: Payload for transaction.successful and transaction.failed webhooks
+      properties:
+        event:
+          type: string
+          enum:
+            - transaction.successful
+            - transaction.failed
+        data:
+          $ref: '#/components/schemas/TransactionWebhookData'
+    
+    TransactionWebhookData:
+      type: object
+      properties:
+        id:
+          type: string
+        amount:
+          type: string
+        fee:
+          type: string
+        narration:
+          type: string
+        type:
+          type: string
+          enum: [credit, debit]
+        initiatedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        accountId:
+          type: string
+        details:
+          type: object
+          properties:
+            accountName:
+              type: string
+            accountNumber:
+              type: string
+            bank:
+              type: object
+              properties:
+                code:
+                  type: string
+                name:
+                  type: string
+        status:
+          type: string
+          enum: [successful, failed]
+        failedAt:
+          type: string
+          format: date-time
+          nullable: true
+        reasonForFailure:
+          type: string
+          nullable: true
+        clientReference:
+          type: string
+          nullable: true
+        transactionReference:
+          type: string
+        nipSessionId:
+          type: string
+          nullable: true
+    
+    BalanceUpdatedWebhookPayload:
+      type: object
+      description: Payload for account.balance-updated webhook
+      properties:
+        event:
+          type: string
+          const: account.balance-updated
+        data:
+          type: object
+          properties:
+            accountId:
+              type: string
+            availableBalance:
+              type: string
+            currentBalance:
+              type: string
+    
+    VirtualAccountTransactionWebhookPayload:
+      type: object
+      description: Payload for virtual-account.transaction and virtual-account.transaction.settled webhooks
+      properties:
+        event:
+          type: string
+          enum:
+            - virtual-account.transaction
+            - virtual-account.transaction.settled
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            amount:
+              type: string
+            accountReference:
+              type: string
+            transactionReference:
+              type: string
+            sender:
+              type: object
+              properties:
+                accountName:
+                  type: string
+                accountNumber:
+                  type: string
+                bankName:
+                  type: string
+    
+    VirtualAccountRejectedTransactionWebhookPayload:
+      type: object
+      description: Payload for virtual-account.rejected-transaction webhook
+      properties:
+        event:
+          type: string
+          const: virtual-account.rejected-transaction
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            amount:
+              type: string
+            accountReference:
+              type: string
+            reason:
+              type: string
+            sender:
+              type: object
+              properties:
+                accountName:
+                  type: string
+                accountNumber:
+                  type: string
+                bankName:
+                  type: string
+    
+    BillPaymentWebhookPayload:
+      type: object
+      description: Payload for bill-payment.successful and bill-payment.failed webhooks
+      properties:
+        event:
+          type: string
+          enum:
+            - bill-payment.successful
+            - bill-payment.failed
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            amount:
+              type: string
+            product:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+            vendor:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+            customerId:
+              type: string
+            status:
+              type: string
+              enum: [successful, failed]
+            completedAt:
+              type: string
+              format: date-time
+              nullable: true
+            failedAt:
+              type: string
+              format: date-time
+              nullable: true
+            reasonForFailure:
+              type: string
+              nullable: true
+    
+    POSTransactionWebhookPayload:
+      type: object
+      description: Payload for pos-transaction and pos-transaction.settled webhooks
+      properties:
+        event:
+          type: string
+          enum:
+            - pos-transaction
+            - pos-transaction.settled
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            reference:
+              type: string
+            amount:
+              type: string
+            type:
+              type: string
+            status:
+              type: string
+            terminalId:
+              type: string
+            terminalSerialNumber:
+              type: string
+    
+    POSTerminalUpdatedWebhookPayload:
+      type: object
+      description: Payload for pos-terminal.updated webhook
+      properties:
+        event:
+          type: string
+          const: pos-terminal.updated
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            serialNumber:
+              type: string
+            name:
+              type: string
+            status:
+              type: string
       
 security:
   - BearerAuth: []
@@ -1077,6 +1314,14 @@ tags:
     description: Bill vendors, products and bill payment operations
   - name: Point of Sale
     description: POS terminal management and POS transactions
+  - name: Webhooks
+    description: |
+      Webhook events sent by Lenco to your server when certain events occur.
+      
+      **Verification:** Each webhook includes an `X-Lenco-Signature` header containing an HMAC SHA512 signature.
+      To verify, hash the raw request body using your webhook_hash_key (SHA256 of your API token) and compare.
+      
+      **Response:** Respond with HTTP 200, 201, or 202 to acknowledge receipt. Unacknowledged webhooks are retried hourly for 24 hours.
 paths:
   /accounts:
     get:
@@ -3731,3 +3976,299 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+
+webhooks:
+  transaction.successful:
+    post:
+      operationId: webhookTransactionSuccessful
+      summary: Transaction Successful
+      description: |
+        Triggered when a transaction is successfully completed on an account linked to your API token.
+        
+        **Verification:** Events include an `X-Lenco-Signature` header (HMAC SHA512 of the payload signed with your webhook_hash_key).
+        The webhook_hash_key is a SHA256 hash of your API token.
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionWebhookPayload"
+            example:
+              event: "transaction.successful"
+              data:
+                id: "3d7f6d4e-1234-4abc-8a0d-1ac2e3f4a5b6"
+                amount: "50000"
+                fee: "50"
+                narration: "Payment to supplier"
+                type: "debit"
+                initiatedAt: "2024-01-20T10:00:00.000Z"
+                completedAt: "2024-01-20T10:00:05.000Z"
+                accountId: "868c2b6f-167d-480b-9bba-c782c40e3d73"
+                details:
+                  accountName: "Supplier Ltd"
+                  accountNumber: "0123456789"
+                  bank:
+                    code: "101"
+                    name: "Providus Bank"
+                status: "successful"
+                failedAt: null
+                reasonForFailure: null
+                clientReference: "client-ref-123456"
+                transactionReference: "txn-098765"
+                nipSessionId: "session-12345"
+      responses:
+        "200":
+          description: Webhook received successfully. Respond with 200, 201, or 202 to acknowledge.
+
+  transaction.failed:
+    post:
+      operationId: webhookTransactionFailed
+      summary: Transaction Failed
+      description: Triggered when a transaction you attempted on an account linked to your API token has failed.
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionWebhookPayload"
+            example:
+              event: "transaction.failed"
+              data:
+                id: "3d7f6d4e-1234-4abc-8a0d-1ac2e3f4a5b6"
+                amount: "50000"
+                fee: "50"
+                narration: "Payment to supplier"
+                type: "debit"
+                status: "failed"
+                failedAt: "2024-01-20T10:00:05.000Z"
+                reasonForFailure: "Insufficient funds"
+                clientReference: "client-ref-123456"
+                transactionReference: "txn-098765"
+      responses:
+        "200":
+          description: Webhook received successfully
+
+  account.balance-updated:
+    post:
+      operationId: webhookAccountBalanceUpdated
+      summary: Account Balance Updated
+      description: Triggered when the balance of an account linked to your API token has changed.
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BalanceUpdatedWebhookPayload"
+            example:
+              event: "account.balance-updated"
+              data:
+                accountId: "868c2b6f-167d-480b-9bba-c782c40e3d73"
+                availableBalance: "120000.50"
+                currentBalance: "125000.50"
+      responses:
+        "200":
+          description: Webhook received successfully
+
+  virtual-account.transaction:
+    post:
+      operationId: webhookVirtualAccountTransaction
+      summary: Virtual Account Transaction
+      description: Triggered when a virtual account linked to your API token has received a successful credit transfer.
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VirtualAccountTransactionWebhookPayload"
+            example:
+              event: "virtual-account.transaction"
+              data:
+                id: "va-tx-001"
+                amount: "10000"
+                accountReference: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                transactionReference: "tx-ref-001"
+                sender:
+                  accountName: "John Doe"
+                  accountNumber: "0123456789"
+                  bankName: "Access Bank"
+      responses:
+        "200":
+          description: Webhook received successfully
+
+  virtual-account.transaction.settled:
+    post:
+      operationId: webhookVirtualAccountTransactionSettled
+      summary: Virtual Account Transaction Settled
+      description: Triggered when your account was credited for a virtual account transaction.
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VirtualAccountTransactionWebhookPayload"
+      responses:
+        "200":
+          description: Webhook received successfully
+
+  virtual-account.rejected-transaction:
+    post:
+      operationId: webhookVirtualAccountRejectedTransaction
+      summary: Virtual Account Rejected Transaction
+      description: Triggered when a transfer into a virtual account was rejected and will be refunded to the sender.
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VirtualAccountRejectedTransactionWebhookPayload"
+            example:
+              event: "virtual-account.rejected-transaction"
+              data:
+                id: "va-rejected-001"
+                amount: "10000"
+                accountReference: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                reason: "Amount exceeds limit"
+                sender:
+                  accountName: "John Doe"
+                  accountNumber: "0123456789"
+                  bankName: "Access Bank"
+      responses:
+        "200":
+          description: Webhook received successfully
+
+  bill-payment.successful:
+    post:
+      operationId: webhookBillPaymentSuccessful
+      summary: Bill Payment Successful
+      description: Triggered when a bill payment was successfully completed on an account linked to your API token.
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillPaymentWebhookPayload"
+            example:
+              event: "bill-payment.successful"
+              data:
+                id: "bill-001"
+                amount: "1000"
+                product:
+                  id: "product-123"
+                  name: "MTN Airtime"
+                vendor:
+                  id: "vendor-001"
+                  name: "MTN"
+                customerId: "08012345678"
+                status: "successful"
+                completedAt: "2024-01-20T10:00:05.000Z"
+      responses:
+        "200":
+          description: Webhook received successfully
+
+  bill-payment.failed:
+    post:
+      operationId: webhookBillPaymentFailed
+      summary: Bill Payment Failed
+      description: Triggered when a bill payment you attempted on an account linked to your API token has failed.
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BillPaymentWebhookPayload"
+            example:
+              event: "bill-payment.failed"
+              data:
+                id: "bill-001"
+                amount: "1000"
+                status: "failed"
+                failedAt: "2024-01-20T10:00:05.000Z"
+                reasonForFailure: "Invalid customer ID"
+      responses:
+        "200":
+          description: Webhook received successfully
+
+  pos-transaction:
+    post:
+      operationId: webhookPOSTransaction
+      summary: POS Transaction
+      description: Triggered when a POS transaction has taken place.
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/POSTransactionWebhookPayload"
+            example:
+              event: "pos-transaction"
+              data:
+                id: "pos-tx-001"
+                reference: "pos-ref-123"
+                amount: "5000"
+                type: "card-payment"
+                status: "successful"
+                terminalId: "term-001"
+                terminalSerialNumber: "P260300146913"
+      responses:
+        "200":
+          description: Webhook received successfully
+
+  pos-transaction.settled:
+    post:
+      operationId: webhookPOSTransactionSettled
+      summary: POS Transaction Settled
+      description: Triggered when your account was credited for a POS transaction.
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/POSTransactionWebhookPayload"
+      responses:
+        "200":
+          description: Webhook received successfully
+
+  pos-terminal.updated:
+    post:
+      operationId: webhookPOSTerminalUpdated
+      summary: POS Terminal Updated
+      description: Triggered when an assigned POS terminal has been updated.
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/POSTerminalUpdatedWebhookPayload"
+            example:
+              event: "pos-terminal.updated"
+              data:
+                id: "term-001"
+                serialNumber: "P260300146913"
+                name: "Lenco Bakeries"
+                status: "assigned"
+      responses:
+        "200":
+          description: Webhook received successfully
