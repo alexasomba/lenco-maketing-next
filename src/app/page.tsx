@@ -35,17 +35,17 @@ export default function Home() {
 							</p>
 							<div className="flex flex-wrap gap-4">
 								<Link
-									href="/docs/v1"
+									href="/blog"
 									className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
 								>
-									Get Started
+									Read Blog
 									<ArrowRight className="w-4 h-4" />
 								</Link>
 								<Link
-									href="/docs/v1"
+									href="/api-reference"
 									className="inline-flex items-center gap-2 px-6 py-3 border border-slate-300 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-600 text-slate-700 dark:text-slate-300 font-medium rounded-lg transition-colors"
 								>
-									View Documentation
+									API Reference
 								</Link>
 							</div>
 						</div>
@@ -65,29 +65,6 @@ export default function Home() {
 						</div>
 						
 						<div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-							{/* Documentation Card */}
-							<Link
-								href="/docs/v1"
-								className="group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 shadow-sm transition-all hover:shadow-xl hover:border-blue-500 dark:hover:border-blue-500 hover:-translate-y-1"
-							>
-								<div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-								<div className="relative">
-									<div className="mb-4 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-										<BookOpen className="w-7 h-7" />
-									</div>
-									<h3 className="text-2xl font-semibold text-slate-900 dark:text-white mb-3">
-										Documentation
-									</h3>
-									<p className="text-slate-600 dark:text-slate-400 mb-4">
-										Explore our API reference, SDKs, and integration guides to start building with Lenco.
-									</p>
-									<span className="inline-flex items-center text-blue-600 dark:text-blue-400 font-medium group-hover:gap-2 transition-all">
-										Get started
-										<ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-									</span>
-								</div>
-							</Link>
-
 							{/* Blog Card */}
 							<Link
 								href="/blog"
@@ -106,6 +83,29 @@ export default function Home() {
 									</p>
 									<span className="inline-flex items-center text-green-600 dark:text-green-400 font-medium group-hover:gap-2 transition-all">
 										Read articles
+										<ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+									</span>
+								</div>
+							</Link>
+
+							{/* API Reference Card */}
+							<Link
+								href="/api-reference"
+								className="group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 shadow-sm transition-all hover:shadow-xl hover:border-blue-500 dark:hover:border-blue-500 hover:-translate-y-1"
+							>
+								<div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+								<div className="relative">
+									<div className="mb-4 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+										<BookOpen className="w-7 h-7" />
+									</div>
+									<h3 className="text-2xl font-semibold text-slate-900 dark:text-white mb-3">
+										API Reference
+									</h3>
+									<p className="text-slate-600 dark:text-slate-400 mb-4">
+										Explore our API endpoints, schemas, and examples to integrate with Lenco.
+									</p>
+									<span className="inline-flex items-center text-blue-600 dark:text-blue-400 font-medium group-hover:gap-2 transition-all">
+										View API
 										<ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
 									</span>
 								</div>
